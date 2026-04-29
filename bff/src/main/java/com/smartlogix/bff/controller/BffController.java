@@ -2,6 +2,8 @@ package com.smartlogix.bff.controller;
 
 import com.smartlogix.bff.exception.ApiError;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -49,24 +51,35 @@ public class BffController {
     // 📦 PEDIDOS
     // =========================
     @GetMapping("/pedidos")
-    public ResponseEntity<Object> obtenerPedidos() {
+public ResponseEntity<Object> obtenerPedidos(HttpServletRequest request) {
 
-        logger.info("GET /api/productos/pedidos");
+    logger.info("GET /api/productos/pedidos");
 
-        try {
-            logger.debug("Llamando a: {}", URL_PEDIDOS);
+    String rol = (String) request.getAttribute("rol");
 
-            Object respuesta = rest.getForObject(URL_PEDIDOS, Object.class);
-
-            return ResponseEntity.ok(respuesta);
-
-        } catch (Exception e) {
-            logger.error("Error en pedidos: {}", e.getMessage());
-
-            return ResponseEntity.status(503)
-                    .body(new ApiError("Servicio de pedidos no disponible", 503));
-        }
+    // 🔴 VALIDACIÓN
+    if (rol == null || !rol.equals("ADMIN")) {
+        logger.error("Acceso denegado");
+        return ResponseEntity.status(403)
+                .body(new ApiError("No autorizado", 403));
     }
+
+    try {
+        String URL = "http://localhost:8092/pedidos";
+
+        logger.debug("Llamando a: {}", URL);
+
+        Object respuesta = rest.getForObject(URL, Object.class);
+
+        return ResponseEntity.ok(respuesta);
+
+    } catch (Exception e) {
+        logger.error("Error en pedidos: {}", e.getMessage());
+
+        return ResponseEntity.status(503)
+                .body(new ApiError("Servicio de pedidos no disponible", 503));
+    }
+}
 
     // =========================
     // 🚚 ENVIOS
@@ -115,6 +128,55 @@ public ResponseEntity<Object> crearPedido(@RequestBody Object pedido) {
 
         return ResponseEntity.status(503)
                 .body(new ApiError("Servicio de pedidos no disponible", 503));
+    }
+}
+
+@PutMapping("/productos/{id}")
+public ResponseEntity<?> editar(@PathVariable Long id,
+                                @RequestBody Object producto,
+                                HttpServletRequest request) {
+
+    String rol = (String) request.getAttribute("rol");
+
+    if (rol == null || !rol.equals("ADMIN")) {
+        return ResponseEntity.status(403)
+                .body(new ApiError("No autorizado", 403));
+    }
+
+    try {
+        String URL = "http://localhost:8091/productos/" + id;
+
+        rest.put(URL, producto);
+
+        return ResponseEntity.ok("Actualizado");
+
+    } catch (Exception e) {
+        return ResponseEntity.status(503)
+                .body(new ApiError("Error servicio", 503));
+    }
+}
+
+@DeleteMapping("/productos/{id}")
+public ResponseEntity<?> eliminar(@PathVariable Long id,
+                                  HttpServletRequest request) {
+
+    String rol = (String) request.getAttribute("rol");
+
+    if (rol == null || !rol.equals("ADMIN")) {
+        return ResponseEntity.status(403)
+                .body(new ApiError("No autorizado", 403));
+    }
+
+    try {
+        String URL = "http://localhost:8091/productos/" + id;
+
+        rest.delete(URL);
+
+        return ResponseEntity.ok("Eliminado");
+
+    } catch (Exception e) {
+        return ResponseEntity.status(503)
+                .body(new ApiError("Error servicio", 503));
     }
 }
 
