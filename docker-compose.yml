@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+
+  inventario:
+    build: ./inventario
+    container_name: inventario
+    ports:
+      - "8091:8091"
+
+  pedidos:
+    build: ./pedidos
+    container_name: pedidos
+    ports:
+      - "8092:8092"
+
+  envios:
+    build: ./envios
+    container_name: envios
+    ports:
+      - "8093:8093"
+
+  bff:
+    build: ./bff
+    container_name: bff
+    ports:
+      - "8085:8085"
+    depends_on:
+      - inventario
+      - pedidos
+      - envios
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - bff
