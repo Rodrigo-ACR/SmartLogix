@@ -1,7 +1,7 @@
 <template>
     <div class="login-container">
 
-        <h1>SmartLogix 🚀</h1>
+        <h1>SmartLogix</h1>
 
         <LoginForm @login="hacerLogin" />
 

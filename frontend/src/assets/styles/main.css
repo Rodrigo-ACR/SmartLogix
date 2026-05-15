@@ -1,0 +1,229 @@
+:root {
+
+    /* =========================
+        🎨 PALETA PRINCIPAL
+    ========================= */
+
+    --bg-main: #E0E2DB;
+    --bg-card: #D2D4C8;
+    --bg-soft: #B8BDB5;
+    --bg-dark: #5F7470;
+
+    /* =========================
+        🎨 BOTONES / ACCIONES
+    ========================= */
+
+    --primary: #5090CB;
+    --success: #56D18B;
+    --danger: #FF6060;
+    --warning: #D5D076;
+
+    /* =========================
+       🎨 TEXTO
+    ========================= */
+
+    --text-dark: #2b2b2b;
+    --text-light: #ffffff;
+}
+
+/* =========================
+   🌍 GLOBAL
+========================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family: 'Segoe UI', sans-serif;
+
+    background: var(--bg-main);
+
+    color: var(--text-dark);
+}
+
+/* =========================
+   🧱 CONTENEDORES
+========================= */
+
+.container {
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    margin: auto;
+
+    padding: 20px;
+}
+
+.card {
+
+    background: var(--bg-card);
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+
+    transition: 0.3s;
+}
+
+.card:hover {
+
+    transform: translateY(-4px);
+
+    background: var(--bg-soft);
+}
+
+/* =========================
+   🔘 BOTONES
+========================= */
+
+button {
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 12px 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+button:hover {
+
+    transform: scale(1.03);
+
+    opacity: 0.92;
+}
+
+.btn-primary {
+
+    background: var(--primary);
+
+    color: white;
+}
+
+.btn-success {
+
+    background: var(--success);
+
+    color: white;
+}
+
+.btn-danger {
+
+    background: var(--danger);
+
+    color: white;
+}
+
+.btn-warning {
+
+    background: var(--warning);
+
+    color: black;
+}
+
+/* =========================
+   📝 INPUTS
+========================= */
+
+input {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border-radius: 12px;
+
+    border: 2px solid transparent;
+
+    font-size: 16px;
+
+    transition: 0.3s;
+}
+
+input:focus {
+
+    outline: none;
+
+    border-color: var(--primary);
+
+    box-shadow: 0 0 10px rgba(80,144,203,0.2);
+}
+
+/* =========================
+   📋 TABLAS
+========================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 20px;
+
+    background: white;
+
+    border-radius: 15px;
+
+    overflow: hidden;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+th {
+
+    background: var(--bg-dark);
+
+    color: white;
+
+    padding: 14px;
+
+    text-align: left;
+}
+
+td {
+
+    padding: 14px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+
+    background: rgba(0,0,0,0.03);
+}
+
+/* =========================
+   📱 RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+
+    .container {
+
+        padding: 10px;
+    }
+
+    .card {
+
+        padding: 15px;
+    }
+
+    table {
+
+        font-size: 14px;
+    }
+}

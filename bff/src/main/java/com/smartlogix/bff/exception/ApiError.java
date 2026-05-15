@@ -1,20 +1,31 @@
 package com.smartlogix.bff.exception;
 
-import java.time.LocalDate;
-
 public class ApiError {
 
     private String mensaje;
     private int codigo;
-    private LocalDate fecha;
+
+    public ApiError() {
+    }
 
     public ApiError(String mensaje, int codigo) {
         this.mensaje = mensaje;
         this.codigo = codigo;
-        this.fecha = LocalDate.now();
     }
 
-    public String getMensaje() { return mensaje; }
-    public int getCodigo() { return codigo; }
-    public LocalDate getFecha() { return fecha; }
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
+
+    public int getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(int codigo) {
+        this.codigo = codigo;
+    }
 }
