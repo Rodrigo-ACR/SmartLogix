@@ -39,7 +39,7 @@ public class BffController {
         }
 
         // =================================================
-        // 📦 INVENTARIO
+        //  INVENTARIO
         // =================================================
 
         @GetMapping
@@ -57,7 +57,7 @@ public class BffController {
         }
 
         // =================================================
-        // 📦 PEDIDOS
+        //  PEDIDOS
         // =================================================
         @GetMapping("/pedidos")
         @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackPedidos")
@@ -68,7 +68,7 @@ public class BffController {
 
                 String rol = (String) request.getAttribute("rol");
 
-                // 🔒 SOLO ADMIN
+                //  SOLO ADMIN
                 if (rol == null || !rol.equals("ADMIN")) {
 
                         return ResponseEntity.status(403)
@@ -85,7 +85,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🚚 ENVIOS
+        //  ENVIOS
         // =================================================
         @GetMapping("/envios")
         @CircuitBreaker(name = "envios", fallbackMethod = "fallbackEnvios")
@@ -101,7 +101,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🧾 CREAR PEDIDO
+        //  CREAR PEDIDO
         // =================================================
         @PostMapping("/pedidos")
         @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCrearPedido")
@@ -120,7 +120,7 @@ public class BffController {
         }
 
         // =================================================
-        // ✏️ EDITAR PRODUCTO
+        //  EDITAR PRODUCTO
         // =================================================
         @PutMapping("/{id}")
         @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackEditar")
@@ -131,7 +131,7 @@ public class BffController {
 
                 String rol = (String) request.getAttribute("rol");
 
-                // 🔒 SOLO ADMIN
+                //  SOLO ADMIN
                 if (rol == null || !rol.equals("ADMIN")) {
 
                         return ResponseEntity.status(403)
@@ -148,7 +148,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🗑️ ELIMINAR PRODUCTO
+        //  ELIMINAR PRODUCTO
         // =================================================
         @DeleteMapping("/{id}")
         @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackEliminar")
@@ -158,7 +158,7 @@ public class BffController {
 
                 String rol = (String) request.getAttribute("rol");
 
-                // 🔒 SOLO ADMIN
+                //  SOLO ADMIN
                 if (rol == null || !rol.equals("ADMIN")) {
 
                         return ResponseEntity.status(403)
@@ -175,7 +175,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK INVENTARIO
+        //  FALLBACK INVENTARIO
         // =================================================
         public ResponseEntity<Object> fallbackInventario(
                         Throwable e) {
@@ -191,7 +191,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK PEDIDOS
+        //  FALLBACK PEDIDOS
         // =================================================
         public ResponseEntity<Object> fallbackPedidos(
                         HttpServletRequest request,
@@ -208,7 +208,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK ENVIOS
+        //  FALLBACK ENVIOS
         // =================================================
         public ResponseEntity<Object> fallbackEnvios(
                         Throwable e) {
@@ -224,7 +224,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK CREAR PEDIDO
+        //  FALLBACK CREAR PEDIDO
         // =================================================
         public ResponseEntity<Object> fallbackCrearPedido(
                         Object pedido,
@@ -241,7 +241,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK EDITAR
+        //  FALLBACK EDITAR
         // =================================================
         public ResponseEntity<?> fallbackEditar(
                         Long id,
@@ -260,7 +260,7 @@ public class BffController {
         }
 
         // =================================================
-        // 🔥 FALLBACK ELIMINAR
+        //  FALLBACK ELIMINAR
         // =================================================
         public ResponseEntity<?> fallbackEliminar(
                         Long id,
