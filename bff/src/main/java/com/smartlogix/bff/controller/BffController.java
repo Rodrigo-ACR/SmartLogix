@@ -2,24 +2,20 @@ package com.smartlogix.bff.controller;
 
 import com.smartlogix.bff.exception.ApiError;
 
-import com.smartlogix.bff.exception.GlobalExceptionHandler;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
 public class BffController {
-
-        private final GlobalExceptionHandler globalExceptionHandler;
 
         private static final Logger logger = LoggerFactory.getLogger(BffController.class);
 
@@ -28,22 +24,18 @@ public class BffController {
         // =================================================
         // URLS MICROSERVICIOS
         // =================================================
+
         private final String URL_INVENTARIO = "http://host.docker.internal:8091/productos";
 
         private final String URL_PEDIDOS = "http://host.docker.internal:8092/pedidos";
 
         private final String URL_ENVIOS = "http://host.docker.internal:8093/envios";
 
-        BffController(GlobalExceptionHandler globalExceptionHandler) {
-                this.globalExceptionHandler = globalExceptionHandler;
-        }
-
         // =================================================
-        //  INVENTARIO
+        // INVENTARIO
         // =================================================
 
         @GetMapping
-
         @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackInventario")
         public ResponseEntity<Object> obtenerProductos() {
 
@@ -57,25 +49,14 @@ public class BffController {
         }
 
         // =================================================
-        //  PEDIDOS
+        // PEDIDOS
         // =================================================
+
         @GetMapping("/pedidos")
         @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackPedidos")
-        public ResponseEntity<Object> obtenerPedidos(
-                        HttpServletRequest request) {
+        public ResponseEntity<Object> obtenerPedidos() {
 
                 logger.info("GET /api/productos/pedidos");
-
-                String rol = (String) request.getAttribute("rol");
-
-                //  SOLO ADMIN
-                if (rol == null || !rol.equals("ADMIN")) {
-
-                        return ResponseEntity.status(403)
-                                        .body(new ApiError(
-                                                        "No autorizado",
-                                                        403));
-                }
 
                 Object respuesta = rest.getForObject(
                                 URL_PEDIDOS,
@@ -85,8 +66,9 @@ public class BffController {
         }
 
         // =================================================
-        //  ENVIOS
+        // ENVIOS
         // =================================================
+
         @GetMapping("/envios")
         @CircuitBreaker(name = "envios", fallbackMethod = "fallbackEnvios")
         public ResponseEntity<Object> obtenerEnvios() {
@@ -101,8 +83,9 @@ public class BffController {
         }
 
         // =================================================
-        //  CREAR PEDIDO
+        // CREAR PEDIDO
         // =================================================
+
         @PostMapping("/pedidos")
         @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCrearPedido")
         public ResponseEntity<Object> crearPedido(
@@ -120,25 +103,36 @@ public class BffController {
         }
 
         // =================================================
-        //  EDITAR PRODUCTO
+        // CREAR PRODUCTO
         // =================================================
+
+        @PostMapping
+        @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackCrearProducto")
+        public ResponseEntity<Object> crearProducto(
+                        @RequestBody Object producto) {
+
+                logger.info("POST /api/productos");
+
+                Object respuesta = rest.postForObject(
+                                URL_INVENTARIO,
+                                producto,
+                                Object.class);
+
+                return ResponseEntity.status(201)
+                                .body(respuesta);
+        }
+
+        // =================================================
+        // EDITAR PRODUCTO
+        // =================================================
+
         @PutMapping("/{id}")
         @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackEditar")
         public ResponseEntity<?> editar(
                         @PathVariable Long id,
-                        @RequestBody Object producto,
-                        HttpServletRequest request) {
+                        @RequestBody Object producto) {
 
-                String rol = (String) request.getAttribute("rol");
-
-                //  SOLO ADMIN
-                if (rol == null || !rol.equals("ADMIN")) {
-
-                        return ResponseEntity.status(403)
-                                        .body(new ApiError(
-                                                        "No autorizado",
-                                                        403));
-                }
+                logger.info("PUT /api/productos/{}", id);
 
                 String URL = "http://host.docker.internal:8091/productos/" + id;
 
@@ -148,24 +142,15 @@ public class BffController {
         }
 
         // =================================================
-        //  ELIMINAR PRODUCTO
+        // ELIMINAR PRODUCTO
         // =================================================
+
         @DeleteMapping("/{id}")
         @CircuitBreaker(name = "inventario", fallbackMethod = "fallbackEliminar")
         public ResponseEntity<?> eliminar(
-                        @PathVariable Long id,
-                        HttpServletRequest request) {
+                        @PathVariable Long id) {
 
-                String rol = (String) request.getAttribute("rol");
-
-                //  SOLO ADMIN
-                if (rol == null || !rol.equals("ADMIN")) {
-
-                        return ResponseEntity.status(403)
-                                        .body(new ApiError(
-                                                        "No autorizado",
-                                                        403));
-                }
+                logger.info("DELETE /api/productos/{}", id);
 
                 String URL = "http://host.docker.internal:8091/productos/" + id;
 
@@ -175,8 +160,9 @@ public class BffController {
         }
 
         // =================================================
-        //  FALLBACK INVENTARIO
+        // FALLBACK INVENTARIO
         // =================================================
+
         public ResponseEntity<Object> fallbackInventario(
                         Throwable e) {
 
@@ -191,10 +177,10 @@ public class BffController {
         }
 
         // =================================================
-        //  FALLBACK PEDIDOS
+        // FALLBACK PEDIDOS
         // =================================================
+
         public ResponseEntity<Object> fallbackPedidos(
-                        HttpServletRequest request,
                         Throwable e) {
 
                 logger.error(
@@ -203,13 +189,14 @@ public class BffController {
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
-                                                "Pedidos temporalmente no disponible",
+                                                "Pedidos temporalmente no disponibles",
                                                 503));
         }
 
         // =================================================
-        //  FALLBACK ENVIOS
+        // FALLBACK ENVIOS
         // =================================================
+
         public ResponseEntity<Object> fallbackEnvios(
                         Throwable e) {
 
@@ -219,13 +206,14 @@ public class BffController {
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
-                                                "Envios temporalmente no disponible",
+                                                "Envios temporalmente no disponibles",
                                                 503));
         }
 
         // =================================================
-        //  FALLBACK CREAR PEDIDO
+        // FALLBACK CREAR PEDIDO
         // =================================================
+
         public ResponseEntity<Object> fallbackCrearPedido(
                         Object pedido,
                         Throwable e) {
@@ -241,12 +229,30 @@ public class BffController {
         }
 
         // =================================================
-        //  FALLBACK EDITAR
+        // FALLBACK CREAR PRODUCTO
         // =================================================
+
+        public ResponseEntity<Object> fallbackCrearProducto(
+                        Object producto,
+                        Throwable e) {
+
+                logger.error(
+                                "CircuitBreaker CREAR PRODUCTO: {}",
+                                e.getMessage());
+
+                return ResponseEntity.status(503)
+                                .body(new ApiError(
+                                                "No se pudo crear producto",
+                                                503));
+        }
+
+        // =================================================
+        // FALLBACK EDITAR
+        // =================================================
+
         public ResponseEntity<?> fallbackEditar(
                         Long id,
                         Object producto,
-                        HttpServletRequest request,
                         Throwable e) {
 
                 logger.error(
@@ -260,11 +266,11 @@ public class BffController {
         }
 
         // =================================================
-        //  FALLBACK ELIMINAR
+        // FALLBACK ELIMINAR
         // =================================================
+
         public ResponseEntity<?> fallbackEliminar(
                         Long id,
-                        HttpServletRequest request,
                         Throwable e) {
 
                 logger.error(

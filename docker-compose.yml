@@ -2,27 +2,98 @@ version: '3.9'
 
 services:
 
+  # =========================================
+  # POSTGRES INVENTARIO
+  # =========================================
+
+  postgres-inventario:
+    image: postgres:16
+    container_name: postgres-inventario
+    restart: always
+    environment:
+      POSTGRES_DB: inventario_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+
+  # =========================================
+  # POSTGRES PEDIDOS
+  # =========================================
+
+  postgres-pedidos:
+    image: postgres:16
+    container_name: postgres-pedidos
+    restart: always
+    environment:
+      POSTGRES_DB: pedidos_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+
+  # =========================================
+  # POSTGRES ENVIOS
+  # =========================================
+
+  postgres-envios:
+    image: postgres:16
+    container_name: postgres-envios
+    restart: always
+    environment:
+      POSTGRES_DB: envios_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+
+  # =========================================
+  # INVENTARIO
+  # =========================================
+
   inventario:
     build: ./inventario
     container_name: inventario
+    restart: always
     ports:
       - "8091:8091"
+    depends_on:
+      - postgres-inventario
+
+  # =========================================
+  # PEDIDOS
+  # =========================================
 
   pedidos:
     build: ./pedidos
     container_name: pedidos
+    restart: always
     ports:
       - "8092:8092"
+    depends_on:
+      - postgres-pedidos
+
+  # =========================================
+  # ENVIOS
+  # =========================================
 
   envios:
     build: ./envios
     container_name: envios
+    restart: always
     ports:
       - "8093:8093"
+    depends_on:
+      - postgres-envios
+
+  # =========================================
+  # BFF
+  # =========================================
 
   bff:
     build: ./bff
     container_name: bff
+    restart: always
     ports:
       - "8085:8085"
     depends_on:
@@ -30,10 +101,16 @@ services:
       - pedidos
       - envios
 
+  # =========================================
+  # FRONTEND
+  # =========================================
+
   frontend:
     build: ./frontend
     container_name: frontend
+    restart: always
     ports:
       - "5173:5173"
     depends_on:
       - bff
+      
