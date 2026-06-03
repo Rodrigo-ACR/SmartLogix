@@ -48,8 +48,11 @@ public class UsuarioService {
     }
 
     public void eliminar(Long id) {
-        repository.deleteById(id);
+    if (!repository.existsById(id)) {
+        throw new RuntimeException("Usuario no encontrado");
     }
+    repository.deleteById(id);
+}
 
     public LoginResponse login(String correo,
             String password) {
