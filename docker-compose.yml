@@ -1,7 +1,6 @@
-version: '3.9'
+version: "3.9"
 
 services:
-
   # =========================================
   # POSTGRES INVENTARIO
   # =========================================
@@ -113,4 +112,31 @@ services:
       - "5173:5173"
     depends_on:
       - bff
-      
+
+        # =========================================
+  # POSTGRES USUARIOS
+  # =========================================
+
+  postgres-usuarios:
+    image: postgres:16
+    container_name: postgres-usuarios
+    restart: always
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+
+  # =========================================
+  # USUARIOS
+  # =========================================
+
+  usuarios:
+    build: ./usuarios
+    container_name: usuarios
+    restart: always
+    ports:
+      - "8094:8094"
+    depends_on:
+      - postgres-usuarios

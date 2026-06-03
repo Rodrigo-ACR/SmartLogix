@@ -1,8 +1,9 @@
 package com.smartlogix.pedidos.controller;
 
-import com.smartlogix.pedidos.model.Pedido;
-import com.smartlogix.pedidos.repository.PedidoRepository;
 import com.smartlogix.pedidos.exception.ApiError;
+import com.smartlogix.pedidos.model.EstadoPedido;
+import com.smartlogix.pedidos.model.Pedido;
+import com.smartlogix.pedidos.service.PedidoService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,88 +19,53 @@ public class PedidoController {
 
     private static final Logger logger = LoggerFactory.getLogger(PedidoController.class);
 
-    private final PedidoRepository repo;
+    private final PedidoService service;
 
-    public PedidoController(PedidoRepository repo) {
-        this.repo = repo;
+    public PedidoController(PedidoService service) {
+        this.service = service;
     }
 
-    // GET TODOS
     @GetMapping
     public List<Pedido> listar() {
         logger.info("GET /pedidos");
-        return repo.findAll();
+        return service.listarTodos();
     }
 
-    // GET POR ID
     @GetMapping("/{id}")
     public ResponseEntity<Object> obtener(@PathVariable Long id) {
-
         logger.info("GET /pedidos/{}", id);
-
-        return repo.findById(id)
+        return service.buscarPorId(id)
                 .map(p -> ResponseEntity.ok((Object) p))
-                .orElseGet(() -> {
-                    logger.error("Pedido no encontrado ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Pedido no encontrado", 404));
-                });
+                .orElse(ResponseEntity.status(404)
+                        .body(new ApiError("Pedido no encontrado", 404)));
     }
 
-    // POST
     @PostMapping
     public ResponseEntity<Object> crear(@RequestBody Pedido p) {
-
         logger.info("POST /pedidos");
-
-        Pedido nuevo = repo.save(p);
-
-        logger.info("Pedido creado ID: {}", nuevo.getId());
-
-        return ResponseEntity.status(201).body((Object) nuevo);
+        Pedido nuevo = service.crear(p);
+        return ResponseEntity.status(201).body(nuevo);
     }
 
-    // PUT
     @PutMapping("/{id}")
-    public ResponseEntity<Object> actualizar(@PathVariable Long id, @RequestBody Pedido nuevo) {
-
+    public ResponseEntity<Object> actualizar(@PathVariable Long id,
+            @RequestBody Pedido pedido) {
         logger.info("PUT /pedidos/{}", id);
-
-        return repo.findById(id)
-                .map(p -> {
-                    p.setCliente(nuevo.getCliente());
-                    p.setProducto(nuevo.getProducto());
-                    p.setCantidad(nuevo.getCantidad());
-                    p.setFecha(nuevo.getFecha());
-
-                    repo.save(p);
-
-                    logger.info("Pedido actualizado ID: {}", id);
-                    return ResponseEntity.ok((Object) p);
-                })
-                .orElseGet(() -> {
-                    logger.error("No se pudo actualizar pedido ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Pedido no existe", 404));
-                });
+        return ResponseEntity.ok(service.actualizar(id, pedido));
     }
 
-    // DELETE
+    // Endpoint para cambiar estado
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Object> cambiarEstado(@PathVariable Long id,
+            @RequestParam EstadoPedido estado) {
+        logger.info("PATCH /pedidos/{}/estado -> {}", id, estado);
+        return ResponseEntity.ok(service.cambiarEstado(id, estado));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> eliminar(@PathVariable Long id) {
-
         logger.info("DELETE /pedidos/{}", id);
-
-        return repo.findById(id)
-                .map(p -> {
-                    repo.delete(p);
-                    logger.info("Pedido eliminado ID: {}", id);
-                    return ResponseEntity.ok((Object) "Pedido eliminado");
-                })
-                .orElseGet(() -> {
-                    logger.error("No se pudo eliminar pedido ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Pedido no existe", 404));
-                });
+        service.eliminar(id);
+        return ResponseEntity.ok("Pedido eliminado");
     }
 }

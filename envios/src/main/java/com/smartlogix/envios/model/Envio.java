@@ -4,26 +4,40 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "envios")
 public class Envio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long pedidoId;
+
     private String direccion;
-    private String estado;
-    private LocalDate fecha;
+
+    private String transportista;
+
+    private LocalDate fechaEstimada;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoEnvio estado;
 
     public Envio() {}
 
     public Long getId() { return id; }
 
+    public Long getPedidoId() { return pedidoId; }
+    public void setPedidoId(Long pedidoId) { this.pedidoId = pedidoId; }
+
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public String getTransportista() { return transportista; }
+    public void setTransportista(String transportista) { this.transportista = transportista; }
 
-    public LocalDate getFecha() { return fecha; }
-    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+    public LocalDate getFechaEstimada() { return fechaEstimada; }
+    public void setFechaEstimada(LocalDate fechaEstimada) { this.fechaEstimada = fechaEstimada; }
+
+    public EstadoEnvio getEstado() { return estado; }
+    public void setEstado(EstadoEnvio estado) { this.estado = estado; }
 }

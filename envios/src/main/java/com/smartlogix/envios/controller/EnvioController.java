@@ -1,8 +1,9 @@
 package com.smartlogix.envios.controller;
 
-import com.smartlogix.envios.model.Envio;
-import com.smartlogix.envios.repository.EnvioRepository;
 import com.smartlogix.envios.exception.ApiError;
+import com.smartlogix.envios.model.EstadoEnvio;
+import com.smartlogix.envios.model.Envio;
+import com.smartlogix.envios.service.EnvioService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,87 +19,53 @@ public class EnvioController {
 
     private static final Logger logger = LoggerFactory.getLogger(EnvioController.class);
 
-    private final EnvioRepository repo;
+    private final EnvioService service;
 
-    public EnvioController(EnvioRepository repo) {
-        this.repo = repo;
+    public EnvioController(EnvioService service) {
+        this.service = service;
     }
 
-    // GET TODOS
     @GetMapping
     public List<Envio> listar() {
         logger.info("GET /envios");
-        return repo.findAll();
+        return service.listarTodos();
     }
 
-    // GET POR ID
     @GetMapping("/{id}")
     public ResponseEntity<Object> obtener(@PathVariable Long id) {
-
         logger.info("GET /envios/{}", id);
-
-        return repo.findById(id)
+        return service.buscarPorId(id)
                 .map(e -> ResponseEntity.ok((Object) e))
-                .orElseGet(() -> {
-                    logger.error("Envio no encontrado ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Envio no encontrado", 404));
-                });
+                .orElse(ResponseEntity.status(404)
+                        .body(new ApiError("Envio no encontrado", 404)));
     }
 
-    // POST
     @PostMapping
     public ResponseEntity<Object> crear(@RequestBody Envio e) {
-
         logger.info("POST /envios");
-
-        Envio nuevo = repo.save(e);
-
-        logger.info("Envio creado ID: {}", nuevo.getId());
-
-        return ResponseEntity.status(201).body((Object) nuevo);
+        Envio nuevo = service.crear(e);
+        return ResponseEntity.status(201).body(nuevo);
     }
 
-    // PUT
     @PutMapping("/{id}")
-    public ResponseEntity<Object> actualizar(@PathVariable Long id, @RequestBody Envio nuevo) {
-
+    public ResponseEntity<Object> actualizar(@PathVariable Long id,
+            @RequestBody Envio envio) {
         logger.info("PUT /envios/{}", id);
-
-        return repo.findById(id)
-                .map(e -> {
-                    e.setDireccion(nuevo.getDireccion());
-                    e.setEstado(nuevo.getEstado());
-                    e.setFecha(nuevo.getFecha());
-
-                    repo.save(e);
-
-                    logger.info("Envio actualizado ID: {}", id);
-                    return ResponseEntity.ok((Object) e);
-                })
-                .orElseGet(() -> {
-                    logger.error("No se pudo actualizar envio ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Envio no existe", 404));
-                });
+        return ResponseEntity.ok(service.actualizar(id, envio));
     }
 
-    // DELETE
+    // Endpoint para cambiar estado
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Object> cambiarEstado(@PathVariable Long id,
+            @RequestParam EstadoEnvio estado) {
+        logger.info("PATCH /envios/{}/estado -> {}", id, estado);
+        return ResponseEntity.ok(service.cambiarEstado(id, estado));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> eliminar(@PathVariable Long id) {
-
         logger.info("DELETE /envios/{}", id);
-
-        return repo.findById(id)
-                .map(e -> {
-                    repo.delete(e);
-                    logger.info("Envio eliminado ID: {}", id);
-                    return ResponseEntity.ok((Object) "Envio eliminado");
-                })
-                .orElseGet(() -> {
-                    logger.error("No se pudo eliminar envio ID: {}", id);
-                    return ResponseEntity.status(404)
-                            .body(new ApiError("Envio no existe", 404));
-                });
+        service.eliminar(id);
+        return ResponseEntity.ok("Envio eliminado");
     }
 }

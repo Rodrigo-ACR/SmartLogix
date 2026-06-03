@@ -2,20 +2,42 @@ package com.smartlogix.bff.service;
 
 import com.smartlogix.bff.model.Usuario;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+
+import java.util.Map;
 
 @Service
 public class AuthService {
 
-    public Usuario login(String user, String pass) {
+    private final RestTemplate rest = new RestTemplate();
 
-        if (user.equals("admin") && pass.equals("1234")) {
-            return new Usuario("admin", "1234", "ADMIN");
+    //private final String URL_USUARIOS = "http://host.docker.internal:8094/usuarios";
+    private final String URL_USUARIOS = "http://usuarios:8094/usuarios";
+
+    public Usuario login(String correo, String password) {
+
+        // Armamos el body para enviar al MS Usuarios
+        Map<String, String> body = Map.of(
+                "correo", correo,
+                "password", password);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<Usuario> response = rest.postForEntity(
+                    URL_USUARIOS + "/login",
+                    request,
+                    Usuario.class);
+
+            return response.getBody();
+
+        } catch (Exception e) {
+            // Si MS Usuarios devuelve 400 o 404, retornamos null
+            return null;
         }
-
-        if (user.equals("cliente") && pass.equals("1234")) {
-            return new Usuario("cliente", "1234", "CLIENTE");
-        }
-
-        return null;
     }
 }

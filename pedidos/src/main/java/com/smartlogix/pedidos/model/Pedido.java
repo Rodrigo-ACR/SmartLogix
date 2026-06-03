@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "pedidos")
 public class Pedido {
 
     @Id
@@ -11,9 +12,17 @@ public class Pedido {
     private Long id;
 
     private String cliente;
-    private String producto;
+
+    private Long productoId;
+
+    private String nombreProducto;
+
     private int cantidad;
+
     private LocalDate fecha;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoPedido estado;
 
     public Pedido() {}
 
@@ -22,12 +31,18 @@ public class Pedido {
     public String getCliente() { return cliente; }
     public void setCliente(String cliente) { this.cliente = cliente; }
 
-    public String getProducto() { return producto; }
-    public void setProducto(String producto) { this.producto = producto; }
+    public Long getProductoId() { return productoId; }
+    public void setProductoId(Long productoId) { this.productoId = productoId; }
+
+    public String getNombreProducto() { return nombreProducto; }
+    public void setNombreProducto(String nombreProducto) { this.nombreProducto = nombreProducto; }
 
     public int getCantidad() { return cantidad; }
     public void setCantidad(int cantidad) { this.cantidad = cantidad; }
 
     public LocalDate getFecha() { return fecha; }
     public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+
+    public EstadoPedido getEstado() { return estado; }
+    public void setEstado(EstadoPedido estado) { this.estado = estado; }
 }

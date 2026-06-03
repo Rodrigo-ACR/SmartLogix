@@ -26,7 +26,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Usuario req) {
 
-        Usuario user = service.login(req.getUsername(), req.getPassword());
+        Usuario user = service.login(req.getCorreo(), req.getPassword());
 
         if (user == null) {
             return ResponseEntity.status(401)
@@ -37,7 +37,8 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of(
                 "token", token,
-                "rol", user.getRol()
-        ));
+                "rol", user.getRol(),
+                "nombre", user.getNombre(),
+                "id", user.getId()));
     }
 }

@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+
 @RestController
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
@@ -26,13 +30,12 @@ public class BffController {
         // =================================================
 
         private final String URL_INVENTARIO = "http://host.docker.internal:8091/productos";
-
         private final String URL_PEDIDOS = "http://host.docker.internal:8092/pedidos";
-
         private final String URL_ENVIOS = "http://host.docker.internal:8093/envios";
+        private final String URL_USUARIOS = "http://host.docker.internal:8094/usuarios";
 
         // =================================================
-        // INVENTARIO
+        // INVENTARIO - GET
         // =================================================
 
         @GetMapping
@@ -49,61 +52,7 @@ public class BffController {
         }
 
         // =================================================
-        // PEDIDOS
-        // =================================================
-
-        @GetMapping("/pedidos")
-        @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackPedidos")
-        public ResponseEntity<Object> obtenerPedidos() {
-
-                logger.info("GET /api/productos/pedidos");
-
-                Object respuesta = rest.getForObject(
-                                URL_PEDIDOS,
-                                Object.class);
-
-                return ResponseEntity.ok(respuesta);
-        }
-
-        // =================================================
-        // ENVIOS
-        // =================================================
-
-        @GetMapping("/envios")
-        @CircuitBreaker(name = "envios", fallbackMethod = "fallbackEnvios")
-        public ResponseEntity<Object> obtenerEnvios() {
-
-                logger.info("GET /api/productos/envios");
-
-                Object respuesta = rest.getForObject(
-                                URL_ENVIOS,
-                                Object.class);
-
-                return ResponseEntity.ok(respuesta);
-        }
-
-        // =================================================
-        // CREAR PEDIDO
-        // =================================================
-
-        @PostMapping("/pedidos")
-        @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCrearPedido")
-        public ResponseEntity<Object> crearPedido(
-                        @RequestBody Object pedido) {
-
-                logger.info("POST /api/productos/pedidos");
-
-                Object respuesta = rest.postForObject(
-                                URL_PEDIDOS,
-                                pedido,
-                                Object.class);
-
-                return ResponseEntity.status(201)
-                                .body(respuesta);
-        }
-
-        // =================================================
-        // CREAR PRODUCTO
+        // INVENTARIO - POST
         // =================================================
 
         @PostMapping
@@ -123,7 +72,7 @@ public class BffController {
         }
 
         // =================================================
-        // EDITAR PRODUCTO
+        // INVENTARIO - PUT
         // =================================================
 
         @PutMapping("/{id}")
@@ -134,15 +83,13 @@ public class BffController {
 
                 logger.info("PUT /api/productos/{}", id);
 
-                String URL = "http://host.docker.internal:8091/productos/" + id;
-
-                rest.put(URL, producto);
+                rest.put(URL_INVENTARIO + "/" + id, producto);
 
                 return ResponseEntity.ok("Actualizado");
         }
 
         // =================================================
-        // ELIMINAR PRODUCTO
+        // INVENTARIO - DELETE
         // =================================================
 
         @DeleteMapping("/{id}")
@@ -152,11 +99,133 @@ public class BffController {
 
                 logger.info("DELETE /api/productos/{}", id);
 
-                String URL = "http://host.docker.internal:8091/productos/" + id;
-
-                rest.delete(URL);
+                rest.delete(URL_INVENTARIO + "/" + id);
 
                 return ResponseEntity.ok("Eliminado");
+        }
+
+        // =================================================
+        // PEDIDOS - GET
+        // =================================================
+
+        @GetMapping("/pedidos")
+        @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackPedidos")
+        public ResponseEntity<Object> obtenerPedidos() {
+
+                logger.info("GET /api/productos/pedidos");
+
+                Object respuesta = rest.getForObject(
+                                URL_PEDIDOS,
+                                Object.class);
+
+                return ResponseEntity.ok(respuesta);
+        }
+
+        // =================================================
+        // PEDIDOS - POST
+        // =================================================
+
+        @PostMapping("/pedidos")
+        @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCrearPedido")
+        public ResponseEntity<Object> crearPedido(
+                        @RequestBody Object pedido) {
+
+                logger.info("POST /api/productos/pedidos");
+
+                Object respuesta = rest.postForObject(
+                                URL_PEDIDOS,
+                                pedido,
+                                Object.class);
+
+                return ResponseEntity.status(201)
+                                .body(respuesta);
+        }
+
+        // =================================================
+        // ENVIOS - GET
+        // =================================================
+
+        @GetMapping("/envios")
+        @CircuitBreaker(name = "envios", fallbackMethod = "fallbackEnvios")
+        public ResponseEntity<Object> obtenerEnvios() {
+
+                logger.info("GET /api/productos/envios");
+
+                Object respuesta = rest.getForObject(
+                                URL_ENVIOS,
+                                Object.class);
+
+                return ResponseEntity.ok(respuesta);
+        }
+
+        // =================================================
+        // ENVIOS - POST
+        // =================================================
+
+        @PostMapping("/envios")
+        @CircuitBreaker(name = "envios", fallbackMethod = "fallbackCrearEnvio")
+        public ResponseEntity<Object> crearEnvio(@RequestBody Object body) {
+                logger.info("POST /api/productos/envios");
+                Object respuesta = rest.postForObject(URL_ENVIOS, body, Object.class);
+                return ResponseEntity.status(201).body(respuesta);
+        }
+
+        // =================================================
+        // USUARIOS - REGISTER
+        // =================================================
+
+        @PostMapping("/usuarios/register")
+        @CircuitBreaker(name = "usuarios", fallbackMethod = "fallbackUsuarios")
+        public ResponseEntity<Object> register(
+                        @RequestBody Object body) {
+
+                logger.info("POST /api/productos/usuarios/register");
+
+                Object respuesta = rest.postForObject(
+                                URL_USUARIOS + "/register",
+                                body,
+                                Object.class);
+
+                return ResponseEntity.status(201).body(respuesta);
+        }
+
+        // =================================================
+        // USUARIOS - GET (admin)
+        // =================================================
+
+        @GetMapping("/usuarios")
+        @CircuitBreaker(name = "usuarios", fallbackMethod = "fallbackUsuarios")
+        public ResponseEntity<Object> getUsuarios() {
+
+                logger.info("GET /api/productos/usuarios");
+
+                Object respuesta = rest.getForObject(
+                                URL_USUARIOS,
+                                Object.class);
+
+                return ResponseEntity.ok(respuesta);
+        }
+
+        // =================================================
+        // USUARIOS - PUT (admin)
+        // =================================================
+
+        @PutMapping("/usuarios/{id}")
+        @CircuitBreaker(name = "usuarios", fallbackMethod = "fallbackUsuariosConId")
+        public ResponseEntity<Object> actualizarUsuario(
+                        @PathVariable Long id,
+                        @RequestBody Object body) {
+
+                logger.info("PUT /api/productos/usuarios/{}", id);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<Object> request = new HttpEntity<>(body, headers);
+
+                rest.put(URL_USUARIOS + "/" + id, request);
+
+                return ResponseEntity.ok("Usuario actualizado");
         }
 
         // =================================================
@@ -166,13 +235,48 @@ public class BffController {
         public ResponseEntity<Object> fallbackInventario(
                         Throwable e) {
 
-                logger.error(
-                                "CircuitBreaker INVENTARIO: {}",
-                                e.getMessage());
+                logger.error("CircuitBreaker INVENTARIO: {}", e.getMessage());
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
                                                 "Inventario temporalmente no disponible",
+                                                503));
+        }
+
+        public ResponseEntity<Object> fallbackCrearProducto(
+                        Object producto,
+                        Throwable e) {
+
+                logger.error("CircuitBreaker CREAR PRODUCTO: {}", e.getMessage());
+
+                return ResponseEntity.status(503)
+                                .body(new ApiError(
+                                                "No se pudo crear producto",
+                                                503));
+        }
+
+        public ResponseEntity<?> fallbackEditar(
+                        Long id,
+                        Object producto,
+                        Throwable e) {
+
+                logger.error("CircuitBreaker EDITAR: {}", e.getMessage());
+
+                return ResponseEntity.status(503)
+                                .body(new ApiError(
+                                                "No se pudo editar producto",
+                                                503));
+        }
+
+        public ResponseEntity<?> fallbackEliminar(
+                        Long id,
+                        Throwable e) {
+
+                logger.error("CircuitBreaker ELIMINAR: {}", e.getMessage());
+
+                return ResponseEntity.status(503)
+                                .body(new ApiError(
+                                                "No se pudo eliminar producto",
                                                 503));
         }
 
@@ -183,13 +287,23 @@ public class BffController {
         public ResponseEntity<Object> fallbackPedidos(
                         Throwable e) {
 
-                logger.error(
-                                "CircuitBreaker PEDIDOS: {}",
-                                e.getMessage());
+                logger.error("CircuitBreaker PEDIDOS: {}", e.getMessage());
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
                                                 "Pedidos temporalmente no disponibles",
+                                                503));
+        }
+
+        public ResponseEntity<Object> fallbackCrearPedido(
+                        Object pedido,
+                        Throwable e) {
+
+                logger.error("CircuitBreaker CREAR PEDIDO: {}", e.getMessage());
+
+                return ResponseEntity.status(503)
+                                .body(new ApiError(
+                                                "No se pudo crear pedido",
                                                 503));
         }
 
@@ -200,9 +314,7 @@ public class BffController {
         public ResponseEntity<Object> fallbackEnvios(
                         Throwable e) {
 
-                logger.error(
-                                "CircuitBreaker ENVIOS: {}",
-                                e.getMessage());
+                logger.error("CircuitBreaker ENVIOS: {}", e.getMessage());
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
@@ -211,75 +323,38 @@ public class BffController {
         }
 
         // =================================================
-        // FALLBACK CREAR PEDIDO
+        // FALLBACK USUARIOS
         // =================================================
 
-        public ResponseEntity<Object> fallbackCrearPedido(
-                        Object pedido,
+        public ResponseEntity<Object> fallbackUsuarios(
                         Throwable e) {
 
-                logger.error(
-                                "CircuitBreaker CREAR PEDIDO: {}",
-                                e.getMessage());
+                logger.error("CircuitBreaker USUARIOS: {}", e.getMessage());
 
                 return ResponseEntity.status(503)
                                 .body(new ApiError(
-                                                "No se pudo crear pedido",
+                                                "Usuarios temporalmente no disponible",
                                                 503));
         }
 
         // =================================================
-        // FALLBACK CREAR PRODUCTO
+        // FALLBACK CREAR ENVIO
         // =================================================
 
-        public ResponseEntity<Object> fallbackCrearProducto(
-                        Object producto,
-                        Throwable e) {
-
-                logger.error(
-                                "CircuitBreaker CREAR PRODUCTO: {}",
-                                e.getMessage());
-
+        public ResponseEntity<Object> fallbackCrearEnvio(Object body, Throwable e) {
+                logger.error("CircuitBreaker CREAR ENVIO: {}", e.getMessage());
                 return ResponseEntity.status(503)
-                                .body(new ApiError(
-                                                "No se pudo crear producto",
-                                                503));
+                                .body(new ApiError("No se pudo crear envio", 503));
         }
 
         // =================================================
-        // FALLBACK EDITAR
+        // FALLBACK USUARIOS CON ID
         // =================================================
 
-        public ResponseEntity<?> fallbackEditar(
-                        Long id,
-                        Object producto,
-                        Throwable e) {
-
-                logger.error(
-                                "CircuitBreaker EDITAR: {}",
-                                e.getMessage());
-
+        public ResponseEntity<Object> fallbackUsuariosConId(
+                        Long id, Object body, Throwable e) {
+                logger.error("CircuitBreaker USUARIOS PUT: {}", e.getMessage());
                 return ResponseEntity.status(503)
-                                .body(new ApiError(
-                                                "No se pudo editar producto",
-                                                503));
-        }
-
-        // =================================================
-        // FALLBACK ELIMINAR
-        // =================================================
-
-        public ResponseEntity<?> fallbackEliminar(
-                        Long id,
-                        Throwable e) {
-
-                logger.error(
-                                "CircuitBreaker ELIMINAR: {}",
-                                e.getMessage());
-
-                return ResponseEntity.status(503)
-                                .body(new ApiError(
-                                                "No se pudo eliminar producto",
-                                                503));
+                                .body(new ApiError("Usuarios temporalmente no disponible", 503));
         }
 }
