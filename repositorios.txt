@@ -1,0 +1,43 @@
+# SmartLogix — Repositorios GitHub
+
+## Repositorio Principal
+URL: https://github.com/Rodrigo-ACR/SmartLogix
+Descripción: Repositorio monorepo con todos los componentes del proyecto SmartLogix.
+Contiene: frontend, bff, inventario, pedidos, envios, usuarios, docker-compose.yml
+
+## Pipeline CI/CD
+URL: https://github.com/Rodrigo-ACR/SmartLogix/actions
+Descripción: GitHub Actions con 4 jobs paralelos (Inventario, Pedidos, Envíos, Usuarios).
+Estado: 4/4 jobs verdes — 0 failures
+
+## Componentes en el mismo repositorio:
+
+### Frontend
+Ruta: /frontend
+Tecnología: Vue.js 3 + Vite
+Puerto: 5173
+
+### BFF (Backend for Frontend)
+Ruta: /bff
+Tecnología: Spring Boot + JWT + Resilience4j
+Puerto: 8085
+
+### MS Inventario
+Ruta: /inventario
+Tecnología: Spring Boot + JPA + PostgreSQL
+Puerto: 8091
+
+### MS Pedidos
+Ruta: /pedidos
+Tecnología: Spring Boot + JPA + PostgreSQL
+Puerto: 8092
+
+### MS Envíos
+Ruta: /envios
+Tecnología: Spring Boot + JPA + PostgreSQL
+Puerto: 8093
+
+### MS Usuarios
+Ruta: /usuarios
+Tecnología: Spring Boot + JPA + PostgreSQL
+Puerto: 8094
