@@ -77,6 +77,7 @@
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
 import { getProductos, getPedidos, getEnvios, getUsuarios } from "../../services/api";
+import "@/assets/styles/AdminDashboard.css";
 
 export default {
     components: { NavbarAdmin },
@@ -113,109 +114,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.dash-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-}
-
-.dash-header h1 {
-    font-size: 2rem;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 32px;
-}
-
-.stat-card {
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    cursor: pointer;
-}
-
-.stat-icon {
-    font-size: 2rem;
-}
-
-.stat-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.stat-label {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    font-family: 'Syne', sans-serif;
-}
-
-.stat-arrow {
-    color: var(--text-muted);
-    font-size: 1.2rem;
-    transition: var(--transition);
-}
-
-.stat-card:hover .stat-arrow {
-    color: var(--accent);
-    transform: translateX(4px);
-}
-
-.dash-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-
-.dash-section {
-    padding: 24px;
-}
-
-.dash-section h3 {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-}
-
-.mini-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.mini-row:last-child {
-    border-bottom: none;
-}
-
-.mini-id {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-right: 8px;
-}
-
-.mini-nombre {
-    font-size: 0.9rem;
-}
-
-.empty-mini {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    padding: 20px 0;
-    text-align: center;
-}
-</style>
