@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import "@/assets/styles/NavbarAdmin.css";
+import "@/assets/styles/navbaradmin.css";
 export default {
     data() {
         return { nombre: localStorage.getItem("nombre") || "Admin" };

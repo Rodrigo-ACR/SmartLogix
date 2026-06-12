@@ -74,7 +74,7 @@
 
 <script>
 import { login, register } from "../services/api";
-import "@/assets/styles/LoginView.css";
+import "@/assets/styles/loginview.css";
 export default {
     data() {
         return {
@@ -90,13 +90,16 @@ export default {
         async hacerLogin() {
             this.loading = true;
             this.error = "";
-            try {
+try {
                 const data = await login(this.correo, this.password);
                 if (data.token) {
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("rol", data.rol);
                     localStorage.setItem("nombre", data.nombre);
                     localStorage.setItem("id", data.id);
+                    if (data.direccion) {
+                        localStorage.setItem("direcciones", JSON.stringify([data.direccion]));
+                    }
                     this.$router.push(data.rol === "ADMIN" ? "/admin" : "/inicio");
                 } else {
                     this.error = "Credenciales incorrectas";

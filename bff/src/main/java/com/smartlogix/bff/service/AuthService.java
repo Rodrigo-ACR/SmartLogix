@@ -10,10 +10,15 @@ import java.util.Map;
 @Service
 public class AuthService {
 
-    private final RestTemplate rest = new RestTemplate();
+    // RestTemplate @LoadBalanced inyectado desde RestTemplateConfig
+    private final RestTemplate rest;
 
-    //private final String URL_USUARIOS = "http://host.docker.internal:8094/usuarios";
-    private final String URL_USUARIOS = "http://usuarios:8094/usuarios";
+    public AuthService(RestTemplate rest) {
+        this.rest = rest;
+    }
+
+    // Nombre logico registrado en Eureka (sin puerto)
+    private final String URL_USUARIOS = "http://usuarios/usuarios";
 
     public Usuario login(String correo, String password) {
 

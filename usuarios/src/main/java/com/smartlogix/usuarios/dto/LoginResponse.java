@@ -6,16 +6,22 @@ public class LoginResponse {
     private String nombre;
     private String correo;
     private String rol;
+    private String direccion;
+    private String telefono;
 
     public LoginResponse(Long id,
             String nombre,
             String correo,
-            String rol) {
+            String rol,
+            String direccion,
+            String telefono) {
 
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
         this.rol = rol;
+        this.direccion = direccion;
+        this.telefono = telefono;
     }
 
     public Long getId() {
@@ -32,5 +38,13 @@ public class LoginResponse {
 
     public String getRol() {
         return rol;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public String getTelefono() {
+        return telefono;
     }
 }

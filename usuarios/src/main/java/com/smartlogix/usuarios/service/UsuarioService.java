@@ -69,7 +69,9 @@ public class UsuarioService {
                 usuario.getId(),
                 usuario.getNombre(),
                 usuario.getCorreo(),
-                usuario.getRol().name());
+                usuario.getRol().name(),
+                usuario.getDireccion(),
+                usuario.getTelefono());
     }
 
     public Usuario register(RegisterRequest request) {

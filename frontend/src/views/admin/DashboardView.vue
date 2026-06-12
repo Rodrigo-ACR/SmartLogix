@@ -77,7 +77,7 @@
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
 import { getProductos, getPedidos, getEnvios, getUsuarios } from "../../services/api";
-import "@/assets/styles/AdminDashboard.css";
+import "@/assets/styles/admindashboardview.css";
 
 export default {
     components: { NavbarAdmin },

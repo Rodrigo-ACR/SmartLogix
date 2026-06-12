@@ -39,6 +39,7 @@ public class AuthController {
                 "token", token,
                 "rol", user.getRol(),
                 "nombre", user.getNombre(),
-                "id", user.getId()));
+                "id", user.getId(),
+                "direccion", user.getDireccion() != null ? user.getDireccion() : ""));
     }
 }

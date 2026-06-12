@@ -139,10 +139,10 @@ export default {
                 this.direcciones.push(this.nuevaDireccion.trim());
                 localStorage.setItem("direcciones", JSON.stringify(this.direcciones));
 
-                // Guardar la primera dirección en el perfil del usuario
+                // Guardar la última dirección agregada en el perfil del usuario
                 await actualizarUsuario(this.id, {
                     nombre: this.nombre,
-                    direccion: this.direcciones[0]
+                    direccion: this.direcciones[this.direcciones.length - 1]
                 });
 
                 this.nuevaDireccion = "";

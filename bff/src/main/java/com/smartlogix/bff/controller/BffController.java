@@ -23,16 +23,22 @@ public class BffController {
 
         private static final Logger logger = LoggerFactory.getLogger(BffController.class);
 
-        private final RestTemplate rest = new RestTemplate();
+        // RestTemplate @LoadBalanced inyectado desde RestTemplateConfig:
+        // resuelve los nombres de servicio contra Eureka
+        private final RestTemplate rest;
+
+        public BffController(RestTemplate rest) {
+                this.rest = rest;
+        }
 
         // =================================================
         // URLS MICROSERVICIOS
         // =================================================
 
-        private final String URL_INVENTARIO = "http://host.docker.internal:8091/productos";
-        private final String URL_PEDIDOS = "http://host.docker.internal:8092/pedidos";
-        private final String URL_ENVIOS = "http://host.docker.internal:8093/envios";
-        private final String URL_USUARIOS = "http://host.docker.internal:8094/usuarios";
+        private final String URL_INVENTARIO = "http://inventario/productos";
+        private final String URL_PEDIDOS = "http://pedidos/pedidos";
+        private final String URL_ENVIOS = "http://envios/envios";
+        private final String URL_USUARIOS = "http://usuarios/usuarios";
 
         // =================================================
         // INVENTARIO - GET
@@ -181,12 +187,19 @@ public class BffController {
 
                 logger.info("POST /api/productos/usuarios/register");
 
-                Object respuesta = rest.postForObject(
-                                URL_USUARIOS + "/register",
-                                body,
-                                Object.class);
+                try {
+                        Object respuesta = rest.postForObject(
+                                        URL_USUARIOS + "/register",
+                                        body,
+                                        Object.class);
 
-                return ResponseEntity.status(201).body(respuesta);
+                        return ResponseEntity.status(201).body(respuesta);
+
+                } catch (org.springframework.web.client.HttpClientErrorException e) {
+                        // Error de negocio del MS (400, 404, etc): reenviar tal cual al frontend
+                        return ResponseEntity.status(e.getStatusCode())
+                                        .body(e.getResponseBodyAs(Object.class));
+                }
         }
 
         // =================================================

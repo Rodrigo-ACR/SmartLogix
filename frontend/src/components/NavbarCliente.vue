@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import "@/assets/styles/NavbarCliente.css";
+import "@/assets/styles/navbarcliente.css";
 export default {
     data() {
         return { nombre: localStorage.getItem("nombre") || "Cliente" };

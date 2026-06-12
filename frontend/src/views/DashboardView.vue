@@ -14,7 +14,7 @@
 import Navbar from "../components/Navbar.vue";
 import DashboardCards from "../components/DashboardCards.vue";
 import DataTable from "../components/DataTable.vue";
-import "@/assets/styles/DashboardView.css";
+import "@/assets/styles/admindashboardview.css";
 import {
     getProductos,
     getPedidos,
