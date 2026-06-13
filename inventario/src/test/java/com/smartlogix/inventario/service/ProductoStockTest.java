@@ -69,29 +69,23 @@ class ProductoStockTest {
         verify(repo, never()).save(any());
     }
 
-    @Test
-    void descontarStock_cantidadCero_debeLanzarExcepcion() {
-        // Descuento de 0 no tiene sentido y debe rechazarse
-        when(repo.findById(1L)).thenReturn(Optional.of(producto));
+@Test
+void descontarStock_cantidadCero_debeLanzarExcepcion() {
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> service.descontarStock(1L, 0));
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.descontarStock(1L, 0));
+    assertTrue(ex.getMessage().contains("mayor a 0") || ex.getMessage().contains("inválida"));
+    verify(repo, never()).save(any());
+}
 
-        assertTrue(ex.getMessage().contains("mayor a 0") || ex.getMessage().contains("inválida"));
-        verify(repo, never()).save(any());
-    }
+@Test
+void descontarStock_cantidadNegativa_debeLanzarExcepcion() {
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> service.descontarStock(1L, -5));
 
-    @Test
-    void descontarStock_cantidadNegativa_debeLanzarExcepcion() {
-        // Cantidad negativa podría sumar stock — debe rechazarse
-        when(repo.findById(1L)).thenReturn(Optional.of(producto));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.descontarStock(1L, -5));
-
-        assertTrue(ex.getMessage().contains("mayor a 0") || ex.getMessage().contains("inválida"));
-        verify(repo, never()).save(any());
-    }
+    assertTrue(ex.getMessage().contains("mayor a 0") || ex.getMessage().contains("inválida"));
+    verify(repo, never()).save(any());
+}
 
     @Test
     void descontarStock_productoNoExistente_debeLanzarExcepcion() {

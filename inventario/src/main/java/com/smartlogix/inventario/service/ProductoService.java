@@ -76,8 +76,16 @@ public class ProductoService {
         repo.deleteById(id);
     }
 
-    // Para que Pedidos pueda descontar stock
+    /**
+     * Descuenta stock validando que la cantidad sea mayor a 0 (corrige TF-04).
+     * Antes se permitía descontar 0 o valores negativos sin error.
+     */
     public void descontarStock(Long id, int cantidad) {
+
+        // Validación de cantidad inválida (corrige TF-04)
+        if (cantidad <= 0) {
+            throw new RuntimeException("La cantidad a descontar debe ser mayor a 0");
+        }
 
         Producto p = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
