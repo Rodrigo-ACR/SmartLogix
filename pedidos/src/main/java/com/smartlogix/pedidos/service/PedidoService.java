@@ -7,12 +7,31 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class PedidoService {
 
     private final PedidoRepository repo;
+
+    /**
+     * Máquina de estados del pedido (patrón State simplificado):
+     * define qué transiciones de negocio son válidas desde cada estado.
+     *
+     * CREADO → VALIDADO | RECHAZADO
+     * VALIDADO → APROBADO | RECHAZADO
+     * APROBADO → EN_PREPARACION
+     * RECHAZADO → (terminal)
+     * EN_PREPARACION → (terminal en este microservicio)
+     */
+    private static final Map<EstadoPedido, Set<EstadoPedido>> TRANSICIONES_VALIDAS = Map.of(
+            EstadoPedido.CREADO, Set.of(EstadoPedido.VALIDADO, EstadoPedido.RECHAZADO),
+            EstadoPedido.VALIDADO, Set.of(EstadoPedido.APROBADO, EstadoPedido.RECHAZADO),
+            EstadoPedido.APROBADO, Set.of(EstadoPedido.EN_PREPARACION),
+            EstadoPedido.RECHAZADO, Set.of(),
+            EstadoPedido.EN_PREPARACION, Set.of());
 
     public PedidoService(PedidoRepository repo) {
         this.repo = repo;
@@ -50,6 +69,16 @@ public class PedidoService {
 
         Pedido pedido = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+
+        EstadoPedido actual = pedido.getEstado();
+
+        // Validación de la máquina de estados (corrige TF-01):
+        // antes se aceptaba cualquier transición, incluso de negocio inválidas.
+        if (actual != null
+                && !TRANSICIONES_VALIDAS.getOrDefault(actual, Set.of()).contains(nuevoEstado)) {
+            throw new RuntimeException(
+                    "Transición de estado no permitida: " + actual + " → " + nuevoEstado);
+        }
 
         pedido.setEstado(nuevoEstado);
         return repo.save(pedido);

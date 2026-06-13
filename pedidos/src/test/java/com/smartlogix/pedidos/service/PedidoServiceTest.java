@@ -35,6 +35,7 @@ class PedidoServiceTest {
         pedido.setProductoId(1L);
         pedido.setNombreProducto("Polera Azul");
         pedido.setCantidad(2);
+        pedido.setEstado(EstadoPedido.CREADO);
     }
 
     @Test
@@ -95,9 +96,9 @@ class PedidoServiceTest {
     void cambiarEstado_existente_debeActualizar() {
         when(repo.findById(1L)).thenReturn(Optional.of(pedido));
         when(repo.save(any())).thenReturn(pedido);
-        Pedido resultado = service.cambiarEstado(1L, EstadoPedido.APROBADO);
+        Pedido resultado = service.cambiarEstado(1L, EstadoPedido.VALIDADO);
         assertNotNull(resultado);
-        assertEquals(EstadoPedido.APROBADO, resultado.getEstado());
+        assertEquals(EstadoPedido.VALIDADO, resultado.getEstado());
     }
 
     @Test

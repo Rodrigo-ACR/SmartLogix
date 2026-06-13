@@ -21,6 +21,11 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(400).body(new ApiError(msg, 400));
         }
 
+        // Transiciones de estado inválidas: conflicto de negocio (TF-01)
+        if (msg != null && msg.contains("no permitida")) {
+            return ResponseEntity.status(409).body(new ApiError(msg, 409));
+        }
+
         return ResponseEntity.status(500).body(new ApiError("Error interno", 500));
     }
 }
