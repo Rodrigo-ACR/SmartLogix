@@ -16,6 +16,10 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(404).body(new ApiError(msg, 404));
         }
 
+        if (msg != null && msg.contains("Transición de estado no permitida")) {
+            return ResponseEntity.status(409).body(new ApiError(msg, 409));
+        }
+
         if (msg != null && msg.contains("obligatori")) {
             return ResponseEntity.status(400).body(new ApiError(msg, 400));
         }

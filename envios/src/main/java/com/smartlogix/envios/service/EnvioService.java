@@ -1,6 +1,5 @@
 package com.smartlogix.envios.service;
 
-//import com.smartlogix.envios.model.EnvioEstado;
 import com.smartlogix.envios.model.Envio;
 import com.smartlogix.envios.model.EstadoEnvio;
 import com.smartlogix.envios.repository.EnvioRepository;
@@ -8,12 +7,31 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class EnvioService {
 
     private final EnvioRepository repo;
+
+    /**
+     * Máquina de estados del envío (patrón State simplificado):
+     * define qué transiciones de negocio son válidas desde cada estado.
+     *
+     * PENDIENTE   → ASIGNADO | INCIDENCIA
+     * ASIGNADO    → EN_TRANSITO | INCIDENCIA
+     * EN_TRANSITO → ENTREGADO | INCIDENCIA
+     * ENTREGADO   → (terminal)
+     * INCIDENCIA  → ASIGNADO (se puede reasignar)
+     */
+    private static final Map<EstadoEnvio, Set<EstadoEnvio>> TRANSICIONES_VALIDAS = Map.of(
+            EstadoEnvio.PENDIENTE,    Set.of(EstadoEnvio.ASIGNADO, EstadoEnvio.INCIDENCIA),
+            EstadoEnvio.ASIGNADO,     Set.of(EstadoEnvio.EN_TRANSITO, EstadoEnvio.INCIDENCIA),
+            EstadoEnvio.EN_TRANSITO,  Set.of(EstadoEnvio.ENTREGADO, EstadoEnvio.INCIDENCIA),
+            EstadoEnvio.ENTREGADO,    Set.of(),
+            EstadoEnvio.INCIDENCIA,   Set.of(EstadoEnvio.ASIGNADO));
 
     public EnvioService(EnvioRepository repo) {
         this.repo = repo;
@@ -37,10 +55,8 @@ public class EnvioService {
             throw new RuntimeException("La dirección es obligatoria");
         }
 
-        // Estado inicial siempre PENDIENTE
         e.setEstado(EstadoEnvio.PENDIENTE);
 
-        // Fecha estimada por defecto 3 días desde hoy
         if (e.getFechaEstimada() == null) {
             e.setFechaEstimada(LocalDate.now().plusDays(3));
         }
@@ -52,6 +68,15 @@ public class EnvioService {
 
         Envio envio = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Envio no encontrado"));
+
+        EstadoEnvio actual = envio.getEstado();
+
+        // Validación de la máquina de estados (corrige TF-02)
+        if (actual != null
+                && !TRANSICIONES_VALIDAS.getOrDefault(actual, Set.of()).contains(nuevoEstado)) {
+            throw new RuntimeException(
+                    "Transición de estado no permitida: " + actual + " → " + nuevoEstado);
+        }
 
         envio.setEstado(nuevoEstado);
         return repo.save(envio);
