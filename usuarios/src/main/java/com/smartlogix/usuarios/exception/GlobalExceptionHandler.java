@@ -17,8 +17,13 @@ public class GlobalExceptionHandler {
                     .body(new ApiError(msg, 404));
         }
 
-        if (msg != null && (msg.contains("ya está registrado")
-                || msg.contains("incorrecta"))) {
+        if (msg != null && msg.contains("ya está registrado")) {
+            return ResponseEntity.status(409)
+                    .body(new ApiError(msg, 409));
+        }
+
+        if (msg != null && (msg.contains("incorrecta")
+                || msg.contains("inhabilitado"))) {
             return ResponseEntity.status(400)
                     .body(new ApiError(msg, 400));
         }

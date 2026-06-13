@@ -94,7 +94,8 @@ class UsuarioIntegrationTest {
                           "password": "xyz456"
                         }
                         """))
-                .andExpect(status().isBadRequest());
+                        .andExpect(status().isConflict());
+                
     }
 
     @Test
@@ -113,7 +114,7 @@ class UsuarioIntegrationTest {
                 .andExpect(status().isCreated());
 
         // Actualizar
-        mockMvc.perform(put("/usuarios/1")
+        mockMvc.perform(put("/usuarios/3")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -128,11 +129,11 @@ class UsuarioIntegrationTest {
                 .andExpect(jsonPath("$.nombre").value("Pedro Soto Actualizado"));
 
         // Eliminar
-        mockMvc.perform(delete("/usuarios/1"))
+        mockMvc.perform(delete("/usuarios/3"))
                 .andExpect(status().isOk());
 
         // Verificar que ya no existe
-        mockMvc.perform(get("/usuarios/1"))
+        mockMvc.perform(get("/usuarios/3"))
                 .andExpect(status().isNotFound());
     }
 }

@@ -48,18 +48,22 @@ public class UsuarioService {
     }
 
     public void eliminar(Long id) {
-    if (!repository.existsById(id)) {
-        throw new RuntimeException("Usuario no encontrado");
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Usuario no encontrado");
+        }
+        repository.deleteById(id);
     }
-    repository.deleteById(id);
-}
 
-    public LoginResponse login(String correo,
-            String password) {
+    public LoginResponse login(String correo, String password) {
 
         Usuario usuario = repository
                 .findByCorreo(correo)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Validación de usuario inactivo (corrige TF-03)
+        if (Boolean.FALSE.equals(usuario.getActivo())) {
+            throw new RuntimeException("Usuario inhabilitado");
+        }
 
         if (!usuario.getPassword().equals(password)) {
             throw new RuntimeException("Contraseña incorrecta");
@@ -85,12 +89,9 @@ public class UsuarioService {
         usuario.setNombre(request.getNombre());
         usuario.setCorreo(request.getCorreo());
         usuario.setPassword(request.getPassword());
-
         usuario.setTelefono(request.getTelefono());
         usuario.setDireccion(request.getDireccion());
-
         usuario.setRol(Rol.CLIENTE);
-
         usuario.setActivo(true);
 
         return repository.save(usuario);
