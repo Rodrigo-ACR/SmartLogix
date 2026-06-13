@@ -54,11 +54,18 @@ public class PedidoController {
         return ResponseEntity.ok(service.actualizar(id, pedido));
     }
 
-    // Endpoint para cambiar estado
+    // Endpoint para cambiar estado (PATCH original + PUT para compatibilidad con RestTemplate)
     @PatchMapping("/{id}/estado")
     public ResponseEntity<Object> cambiarEstado(@PathVariable Long id,
             @RequestParam EstadoPedido estado) {
         logger.info("PATCH /pedidos/{}/estado -> {}", id, estado);
+        return ResponseEntity.ok(service.cambiarEstado(id, estado));
+    }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Object> cambiarEstadoPut(@PathVariable Long id,
+            @RequestParam EstadoPedido estado) {
+        logger.info("PUT /pedidos/{}/estado -> {}", id, estado);
         return ResponseEntity.ok(service.cambiarEstado(id, estado));
     }
 

@@ -1,21 +1,12 @@
 version: "3.9"
 
 services:
-
-  # =========================================
-  # EUREKA SERVER (Service Discovery)
-  # =========================================
-
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
     restart: always
     ports:
       - "8761:8761"
-
-  # =========================================
-  # POSTGRES INVENTARIO
-  # =========================================
 
   postgres-inventario:
     image: postgres:16
@@ -28,10 +19,6 @@ services:
     ports:
       - "5433:5432"
 
-  # =========================================
-  # POSTGRES PEDIDOS
-  # =========================================
-
   postgres-pedidos:
     image: postgres:16
     container_name: postgres-pedidos
@@ -42,10 +29,6 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5434:5432"
-
-  # =========================================
-  # POSTGRES ENVIOS
-  # =========================================
 
   postgres-envios:
     image: postgres:16
@@ -58,10 +41,6 @@ services:
     ports:
       - "5435:5432"
 
-  # =========================================
-  # POSTGRES USUARIOS
-  # =========================================
-
   postgres-usuarios:
     image: postgres:16
     container_name: postgres-usuarios
@@ -72,10 +51,6 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5436:5432"
-
-  # =========================================
-  # INVENTARIO
-  # =========================================
 
   inventario:
     build: ./inventario
@@ -88,13 +63,15 @@ services:
       DB_URL: jdbc:postgresql://postgres-inventario:5432/inventario_db
       DB_USER: postgres
       DB_PASS: postgres
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_INSTANCE_PREFERIPADDRESS: "false"
+      EUREKA_INSTANCE_NONSECUREPORT: "8091"
+      EUREKA_INSTANCE_STATUSPAGEURL: http://localhost:8091/actuator/info
+      EUREKA_INSTANCE_HEALTHCHECKURL: http://localhost:8091/actuator/health
+      EUREKA_INSTANCE_HOMEPAGEURL: http://localhost:8091/swagger-ui.html
     depends_on:
       - postgres-inventario
       - eureka-server
-
-  # =========================================
-  # PEDIDOS
-  # =========================================
 
   pedidos:
     build: ./pedidos
@@ -107,13 +84,15 @@ services:
       DB_URL: jdbc:postgresql://postgres-pedidos:5432/pedidos_db
       DB_USER: postgres
       DB_PASS: postgres
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_INSTANCE_PREFERIPADDRESS: "false"
+      EUREKA_INSTANCE_NONSECUREPORT: "8092"
+      EUREKA_INSTANCE_STATUSPAGEURL: http://localhost:8092/actuator/info
+      EUREKA_INSTANCE_HEALTHCHECKURL: http://localhost:8092/actuator/health
+      EUREKA_INSTANCE_HOMEPAGEURL: http://localhost:8092/swagger-ui.html
     depends_on:
       - postgres-pedidos
       - eureka-server
-
-  # =========================================
-  # ENVIOS
-  # =========================================
 
   envios:
     build: ./envios
@@ -126,13 +105,15 @@ services:
       DB_URL: jdbc:postgresql://postgres-envios:5432/envios_db
       DB_USER: postgres
       DB_PASS: postgres
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_INSTANCE_PREFERIPADDRESS: "false"
+      EUREKA_INSTANCE_NONSECUREPORT: "8093"
+      EUREKA_INSTANCE_STATUSPAGEURL: http://localhost:8093/actuator/info
+      EUREKA_INSTANCE_HEALTHCHECKURL: http://localhost:8093/actuator/health
+      EUREKA_INSTANCE_HOMEPAGEURL: http://localhost:8093/swagger-ui.html
     depends_on:
       - postgres-envios
       - eureka-server
-
-  # =========================================
-  # USUARIOS
-  # =========================================
 
   usuarios:
     build: ./usuarios
@@ -145,13 +126,15 @@ services:
       DB_URL: jdbc:postgresql://postgres-usuarios:5432/usuarios_db
       DB_USER: postgres
       DB_PASS: postgres
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_INSTANCE_PREFERIPADDRESS: "false"
+      EUREKA_INSTANCE_NONSECUREPORT: "8094"
+      EUREKA_INSTANCE_STATUSPAGEURL: http://localhost:8094/actuator/info
+      EUREKA_INSTANCE_HEALTHCHECKURL: http://localhost:8094/actuator/health
+      EUREKA_INSTANCE_HOMEPAGEURL: http://localhost:8094/swagger-ui.html
     depends_on:
       - postgres-usuarios
       - eureka-server
-
-  # =========================================
-  # BFF
-  # =========================================
 
   bff:
     build: ./bff
@@ -161,16 +144,18 @@ services:
       - "8085:8085"
     environment:
       EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_INSTANCE_PREFERIPADDRESS: "false"
+      EUREKA_INSTANCE_NONSECUREPORT: "8085"
+      EUREKA_INSTANCE_STATUSPAGEURL: http://localhost:8085/actuator/info
+      EUREKA_INSTANCE_HEALTHCHECKURL: http://localhost:8085/actuator/health
+      EUREKA_INSTANCE_HOMEPAGEURL: http://localhost:8085/swagger-ui.html
     depends_on:
       - eureka-server
       - inventario
       - pedidos
       - envios
       - usuarios
-
-  # =========================================
-  # FRONTEND
-  # =========================================
 
   frontend:
     build: ./frontend

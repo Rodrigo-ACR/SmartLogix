@@ -27,7 +27,7 @@ public class BffController {
         // resuelve los nombres de servicio contra Eureka
         private final RestTemplate rest;
 
-        public BffController(RestTemplate rest) {
+        public BffController(@org.springframework.beans.factory.annotation.Qualifier("plainRestTemplate") RestTemplate rest) {
                 this.rest = rest;
         }
 
@@ -35,10 +35,10 @@ public class BffController {
         // URLS MICROSERVICIOS
         // =================================================
 
-        private final String URL_INVENTARIO = "http://inventario/productos";
-        private final String URL_PEDIDOS = "http://pedidos/pedidos";
-        private final String URL_ENVIOS = "http://envios/envios";
-        private final String URL_USUARIOS = "http://usuarios/usuarios";
+        private final String URL_INVENTARIO = "http://inventario:8091/productos";
+        private final String URL_PEDIDOS = "http://pedidos:8092/pedidos";
+        private final String URL_ENVIOS = "http://envios:8093/envios";
+        private final String URL_USUARIOS = "http://usuarios:8094/usuarios";
 
         // =================================================
         // INVENTARIO - GET
@@ -145,6 +145,57 @@ public class BffController {
 
                 return ResponseEntity.status(201)
                                 .body(respuesta);
+        }
+
+        // =================================================
+        // PEDIDOS - PATCH estado
+        // =================================================
+
+        @PatchMapping("/pedidos/{id}/estado")
+        @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCambiarEstadoPedido")
+        public ResponseEntity<Object> cambiarEstadoPedido(
+                        @PathVariable Long id,
+                        @RequestParam String estado) {
+
+                logger.info("PATCH /api/productos/pedidos/{} estado={}", id, estado);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<Void> request = new HttpEntity<>(headers);
+
+                org.springframework.web.client.RestTemplate rt = rest;
+                ResponseEntity<Object> response = rt.exchange(
+                                URL_PEDIDOS + "/" + id + "/estado?estado=" + estado,
+                                org.springframework.http.HttpMethod.PUT,
+                                request,
+                                Object.class);
+
+                return ResponseEntity.ok(response.getBody());
+        }
+
+        // =================================================
+        // ENVIOS - PATCH estado
+        // =================================================
+
+        @PatchMapping("/envios/{id}/estado")
+        @CircuitBreaker(name = "envios", fallbackMethod = "fallbackCambiarEstadoEnvio")
+        public ResponseEntity<Object> cambiarEstadoEnvio(
+                        @PathVariable Long id,
+                        @RequestParam String estado) {
+
+                logger.info("PATCH /api/productos/envios/{} estado={}", id, estado);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<Void> request = new HttpEntity<>(headers);
+
+                ResponseEntity<Object> response = rest.exchange(
+                                URL_ENVIOS + "/" + id + "/estado?estado=" + estado,
+                                org.springframework.http.HttpMethod.PUT,
+                                request,
+                                Object.class);
+
+                return ResponseEntity.ok(response.getBody());
         }
 
         // =================================================
@@ -318,6 +369,20 @@ public class BffController {
                                 .body(new ApiError(
                                                 "No se pudo crear pedido",
                                                 503));
+        }
+
+        public ResponseEntity<Object> fallbackCambiarEstadoPedido(
+                        Long id, String estado, Throwable e) {
+                logger.error("CircuitBreaker CAMBIAR ESTADO PEDIDO: {}", e.getMessage());
+                return ResponseEntity.status(503)
+                                .body(new ApiError("No se pudo cambiar estado del pedido", 503));
+        }
+
+        public ResponseEntity<Object> fallbackCambiarEstadoEnvio(
+                        Long id, String estado, Throwable e) {
+                logger.error("CircuitBreaker CAMBIAR ESTADO ENVIO: {}", e.getMessage());
+                return ResponseEntity.status(503)
+                                .body(new ApiError("No se pudo cambiar estado del envio", 503));
         }
 
         // =================================================
