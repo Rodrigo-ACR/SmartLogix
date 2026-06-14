@@ -35,6 +35,16 @@
                 <div v-for="i in 8" :key="i" class="skeleton-card"></div>
             </div>
 
+            <!-- Banner de error Circuit Breaker -->
+            <div v-if="!loading && error" class="error-banner">
+                <span class="error-icon">🔴</span>
+                <div>
+                    <strong>{{ error }}</strong>
+                    <p>El sistema de inventario está temporalmente fuera de servicio. Se recuperará automáticamente.</p>
+                </div>
+                <button class="btn-retry" @click="cargarProductos">🔄 Reintentar</button>
+            </div>
+
             <div v-else class="productos-grid">
                 <div v-for="p in productosFiltrados" :key="p.id" class="producto-card card"
                     @click="$router.push('/producto/' + p.id)">
@@ -135,6 +145,7 @@ export default {
             productos: [],
             busqueda: "",
             loading: true,
+            error: "",
             carrito: [],
             mostrarCarrito: false,
             procesando: false,
@@ -168,10 +179,12 @@ export default {
     methods: {
         async cargarProductos() {
             this.loading = true;
+            this.error = "";
             try {
                 this.productos = await getProductos();
             } catch {
                 this.productos = [];
+                this.error = "⚠️ Inventario temporalmente no disponible. Intenta de nuevo en unos momentos.";
             }
             this.loading = false;
         },
@@ -230,3 +243,51 @@ export default {
     }
 }
 </script>
+<style scoped>
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(135deg, #1a0a0a, #2d1010);
+    border: 1px solid #ef444466;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    animation: slideIn 0.4s ease;
+}
+.error-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+.error-banner strong {
+    color: #ef4444;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+.error-banner p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0;
+}
+.btn-retry {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: #ef444422;
+    color: #ef4444;
+    border: 1px solid #ef444466;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-retry:hover {
+    background: #ef444433;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
