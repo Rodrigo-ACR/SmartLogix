@@ -41,6 +41,7 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    -webkit-user-select: none;
     user-select: none;
 }
 

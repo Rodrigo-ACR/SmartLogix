@@ -3,7 +3,6 @@ package com.smartlogix.usuarios.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartlogix.usuarios.model.Rol;
@@ -16,8 +15,11 @@ import com.smartlogix.usuarios.dto.RegisterRequest;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository repository;
+    private final UsuarioRepository repository;
+
+    public UsuarioService(UsuarioRepository repository) {
+        this.repository = repository;
+    }
 
     public List<Usuario> listarTodos() {
         return repository.findAll();

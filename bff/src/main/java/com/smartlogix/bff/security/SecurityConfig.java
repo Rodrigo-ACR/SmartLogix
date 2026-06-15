@@ -19,22 +19,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> {})
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {
+                })
 
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
 
-                // 🔓 LOGIN libre
-                .requestMatchers("/auth/**").permitAll()
+                        // 🔓 LOGIN libre
+                        .requestMatchers("/auth/**").permitAll()
 
-                // 🔓 permitir TODO (el control lo haces tú con JWT)
-                .anyRequest().permitAll()
-            )
+                        // 🔓 permitir TODO (el control lo haces tú con JWT)
+                        .anyRequest().permitAll())
 
-            // 🔥 TU FILTRO MANDA
-            .addFilterBefore(jwtFilter,
-                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class
-            );
+                // 🔥 TU FILTRO MANDA
+                .addFilterBefore(jwtFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
