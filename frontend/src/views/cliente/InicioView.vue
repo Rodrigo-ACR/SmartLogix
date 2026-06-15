@@ -67,7 +67,15 @@
                         <p class="producto-desc">{{ p.descripcion || 'Sin descripción' }}</p>
                         <div class="producto-footer">
                             <span class="producto-precio">${{ formatPrecio(p.precio) }}</span>
-                            <button class="btn btn-primary btn-sm" @click.stop="agregarCarrito(p)"
+                            <!-- Controles qty si ya está en carrito -->
+                            <div v-if="enCarrito(p)" class="qty-controls-card">
+                                <button class="qty-btn-card" @click.stop="decrementar(enCarrito(p))">−</button>
+                                <span class="qty-num-card">{{ enCarrito(p).qty }}</span>
+                                <button class="qty-btn-card" @click.stop="incrementar(enCarrito(p))"
+                                    :disabled="enCarrito(p).qty >= p.stock">+</button>
+                            </div>
+                            <!-- Botón agregar si no está -->
+                            <button v-else class="btn btn-primary btn-sm" @click.stop="agregarCarrito(p)"
                                 :disabled="p.stock === 0">
                                 + Agregar
                             </button>
@@ -191,6 +199,9 @@ export default {
             this.loading = false;
         },
 
+        enCarrito(p) {
+            return this.carrito.find(i => i.id === p.id) || null;
+        },
         agregarCarrito(p) {
             const existe = this.carrito.find(i => i.id === p.id);
             if (existe) {

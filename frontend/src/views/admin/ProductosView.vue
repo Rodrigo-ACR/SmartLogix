@@ -38,10 +38,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="loading">
-                            <td colspan="5" class="text-center">Cargando...</td>
-                        </tr>
-                        <tr v-for="p in productosFiltrados" :key="p.id">
+                        <template v-if="loading">
+                            <tr v-for="i in 5" :key="'sk' + i" class="skeleton-row-tr">
+                                <td v-for="j in 5" :key="j">
+                                    <div class="sk-cell"></div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr v-for="p in productosPaginados" :key="p.id">
                             <td class="text-muted">#{{ p.id }}</td>
                             <td>
                                 <div class="producto-nombre-cell">
@@ -128,19 +132,33 @@
                 </div>
             </div>
 
+            <!-- Paginación -->
+            <div v-if="totalPaginas > 1" class="paginacion">
+                <button class="pag-btn" :disabled="pagina === 1" @click="pagina--">
+                    <Icons name="arrow-left" :size="18" color="currentColor" />
+                </button>
+                <button v-for="n in totalPaginas" :key="n" class="pag-num" :class="{ active: pagina === n }"
+                    @click="pagina = n">{{
+                    n }}</button>
+                <button class="pag-btn" :disabled="pagina === totalPaginas" @click="pagina++">
+                    <Icons name="arrow-right" :size="18" color="currentColor" />
+                </button>
+            </div>
+
         </div>
     </div>
 </template>
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
+import Icons from "../../components/Icons.vue";
 import { getProductos, crearProducto, editarProducto, eliminarProducto } from "../../services/api";
 import "@/assets/styles/productosview.css";
 const CLOUD_NAME = "diq24kgrd";
 const UPLOAD_PRESET = "Productos";
 
 export default {
-    components: { NavbarAdmin },
+    components: { NavbarAdmin, Icons },
     data() {
         return {
             productos: [],
@@ -151,6 +169,8 @@ export default {
             error: "",
             errorCarga: "",
             busqueda: "",
+            pagina: 1,
+            porPagina: 8,
             subiendo: null,
             slotActual: null,
             form: {
@@ -165,6 +185,9 @@ export default {
         };
     },
     async mounted() { await this.cargar(); },
+    watch: {
+        busqueda() { this.pagina = 1; }
+    },
     computed: {
         productosFiltrados() {
             const texto = this.busqueda.toLowerCase();
@@ -173,6 +196,13 @@ export default {
                 (p.nombre || "").toLowerCase().includes(texto) ||
                 (p.descripcion || "").toLowerCase().includes(texto)
             );
+        },
+        productosPaginados() {
+            const inicio = (this.pagina - 1) * this.porPagina;
+            return this.productosFiltrados.slice(inicio, inicio + this.porPagina);
+        },
+        totalPaginas() {
+            return Math.ceil(this.productosFiltrados.length / this.porPagina);
         }
     },
     methods: {

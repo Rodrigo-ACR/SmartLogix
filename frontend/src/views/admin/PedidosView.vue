@@ -46,10 +46,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="loading">
-                            <td colspan="7" class="text-center">Cargando...</td>
-                        </tr>
-                        <tr v-for="p in pedidosFiltrados" :key="p.id">
+                        <template v-if="loading">
+                            <tr v-for="i in 5" :key="'sk' + i" class="skeleton-row-tr">
+                                <td v-for="j in 7" :key="j">
+                                    <div class="sk-cell"></div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr v-for="p in pedidosPaginados" :key="p.id">
                             <td class="text-muted">#{{ p.id }}</td>
                             <td>{{ p.cliente }}</td>
                             <td>{{ p.nombreProducto || '-' }}</td>
@@ -76,12 +80,13 @@
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
+import Icons from "../../components/Icons.vue";
 import { getPedidos, cambiarEstadoPedido } from "../../services/api";
 import "@/assets/styles/pedidosview.css";
 export default {
-    components: { NavbarAdmin },
+    components: { NavbarAdmin, Icons },
     data() {
-        return { pedidos: [], loading: true, error: "", busqueda: "", filtroEstado: "" };
+        return { pedidos: [], loading: true, error: "", busqueda: "", filtroEstado: "", pagina: 1, porPagina: 8 };
     },
     computed: {
         pedidosFiltrados() {
@@ -94,7 +99,18 @@ export default {
                 const estado = !this.filtroEstado || p.estado === this.filtroEstado;
                 return coincide && estado;
             });
+        },
+        pedidosPaginados() {
+            const inicio = (this.pagina - 1) * this.porPagina;
+            return this.pedidosFiltrados.slice(inicio, inicio + this.porPagina);
+        },
+        totalPaginas() {
+            return Math.ceil(this.pedidosFiltrados.length / this.porPagina);
         }
+    },
+    watch: {
+        busqueda() { this.pagina = 1; },
+        filtroEstado() { this.pagina = 1; }
     },
     async mounted() {
         try { this.pedidos = await getPedidos(); } catch { this.error = "⚠️ No se pudieron cargar los pedidos. Servicio temporalmente no disponible."; }

@@ -36,9 +36,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="loading">
-                            <td colspan="7" class="text-center">Cargando...</td>
-                        </tr>
+                        <template v-if="loading">
+                            <tr v-for="i in 5" :key="'sk' + i" class="skeleton-row-tr">
+                                <td v-for="j in 7" :key="j">
+                                    <div class="sk-cell"></div>
+                                </td>
+                            </tr>
+                        </template>
                         <tr v-if="!loading && enviosActivos.length === 0">
                             <td colspan="7" class="text-center text-muted">No hay envíos en curso</td>
                         </tr>

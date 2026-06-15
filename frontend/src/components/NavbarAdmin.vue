@@ -20,6 +20,8 @@
             </div>
 
             <!-- Botón hamburguesa (solo móvil) -->
+            <ThemeToggle />
+
             <button class="hamburger" @click="menuAbierto = !menuAbierto" :class="{ open: menuAbierto }">
                 <span></span>
                 <span></span>
@@ -43,8 +45,10 @@
 </template>
 
 <script>
+import ThemeToggle from "./ThemeToggle.vue";
 import "@/assets/styles/navbaradmin.css";
 export default {
+    components: { ThemeToggle },
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Admin",

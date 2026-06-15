@@ -65,13 +65,14 @@
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
+import Icons from "../../components/Icons.vue";
 import { getUsuarios } from "../../services/api";
 import "@/assets/styles/clientesview.css";
 
 export default {
-    components: { NavbarAdmin },
+    components: { NavbarAdmin, Icons },
     data() {
-        return { clientes: [], loading: true, error: "", busqueda: "" };
+        return { clientes: [], loading: true, error: "", busqueda: "", pagina: 1, porPagina: 8 };
     },
     computed: {
         clientesFiltrados() {
@@ -81,7 +82,17 @@ export default {
                 (c.nombre || "").toLowerCase().includes(texto) ||
                 (c.correo || "").toLowerCase().includes(texto)
             );
+        },
+        clientesPaginados() {
+            const inicio = (this.pagina - 1) * this.porPagina;
+            return this.clientesFiltrados.slice(inicio, inicio + this.porPagina);
+        },
+        totalPaginas() {
+            return Math.ceil(this.clientesFiltrados.length / this.porPagina);
         }
+    },
+    watch: {
+        busqueda() { this.pagina = 1; }
     },
     async mounted() {
         try {

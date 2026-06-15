@@ -16,6 +16,8 @@
                 <button class="btn btn-outline btn-sm" @click="logout">Salir</button>
             </div>
 
+            <ThemeToggle />
+
             <button class="hamburger" @click="menuAbierto = !menuAbierto" :class="{ open: menuAbierto }">
                 <span></span>
                 <span></span>
@@ -36,8 +38,10 @@
 </template>
 
 <script>
+import ThemeToggle from "./ThemeToggle.vue";
 import "@/assets/styles/navbarcliente.css";
 export default {
+    components: { ThemeToggle },
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Cliente",
