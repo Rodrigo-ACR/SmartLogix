@@ -2,7 +2,7 @@
     <div>
         <NavbarAdmin />
         <div class="container page">
-            <h1 class="page-title">Pedidos</h1>
+            <h1 class="page-title">Clientes</h1>
 
             <div v-if="error" class="error-banner-admin">
                 <span>🔴</span>
@@ -13,39 +13,47 @@
                 <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
             </div>
 
+            <div class="filtros-bar">
+                <div class="filtro-search">
+                    <span class="search-icon">🔍</span>
+                    <input v-model="busqueda" type="text" placeholder="Buscar por nombre o correo..."
+                        class="search-input" />
+                    <button v-if="busqueda" @click="busqueda = ''" class="search-clear">✕</button>
+                </div>
+                <span class="filtro-count">{{ clientesFiltrados.length }} de {{ clientes.length }}</span>
+            </div>
+
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Fecha</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="loading">
-                            <td colspan="7" class="text-center">Cargando...</td>
+                            <td colspan="6" class="text-center">Cargando...</td>
                         </tr>
-                        <tr v-for="p in pedidos" :key="p.id">
-                            <td class="text-muted">#{{ p.id }}</td>
-                            <td>{{ p.cliente }}</td>
-                            <td>{{ p.nombreProducto || '-' }}</td>
-                            <td>{{ p.cantidad }}</td>
-                            <td>{{ formatFecha(p.fecha) }}</td>
-                            <td><span :class="badgeEstado(p.estado)" class="badge">{{ p.estado }}</span></td>
+                        <tr v-for="u in clientes" :key="u.id">
+                            <td class="text-muted">#{{ u.id }}</td>
                             <td>
-                                <select class="estado-select" :value="p.estado"
-                                    @change="cambiarEstado(p.id, $event.target.value)">
-                                    <option value="CREADO">CREADO</option>
-                                    <option value="VALIDADO">VALIDADO</option>
-                                    <option value="APROBADO">APROBADO</option>
-                                    <option value="RECHAZADO">RECHAZADO</option>
-                                    <option value="EN_PREPARACION">EN_PREPARACION</option>
-                                </select>
+                                <div class="user-cell">
+                                    <div class="user-avatar">{{ iniciales(u.nombre) }}</div>
+                                    <span>{{ u.nombre }}</span>
+                                </div>
+                            </td>
+                            <td>{{ u.correo }}</td>
+                            <td>{{ u.telefono || '-' }}</td>
+                            <td>{{ u.direccion || '-' }}</td>
+                            <td>
+                                <span :class="u.activo ? 'badge-success' : 'badge-danger'" class="badge">
+                                    {{ u.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -57,32 +65,35 @@
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
-import { getPedidos, cambiarEstadoPedido } from "../../services/api";
-import "@/assets/styles/pedidosview.css";
+import { getUsuarios } from "../../services/api";
+import "@/assets/styles/clientesview.css";
+
 export default {
     components: { NavbarAdmin },
     data() {
-        return { pedidos: [], loading: true, error: "" };
+        return { clientes: [], loading: true, error: "", busqueda: "" };
+    },
+    computed: {
+        clientesFiltrados() {
+            const texto = this.busqueda.toLowerCase();
+            if (!texto) return this.clientes;
+            return this.clientes.filter(c =>
+                (c.nombre || "").toLowerCase().includes(texto) ||
+                (c.correo || "").toLowerCase().includes(texto)
+            );
+        }
     },
     async mounted() {
-        try { this.pedidos = await getPedidos(); } catch { this.error = "⚠️ No se pudieron cargar los pedidos. Servicio temporalmente no disponible."; }
+        try {
+            const todos = await getUsuarios();
+            this.clientes = todos.filter(u => u.rol === "CLIENTE");
+        } catch { }
         this.loading = false;
     },
     methods: {
-        async cambiarEstado(id, estado) {
-            try {
-                await cambiarEstadoPedido(id, estado);
-                const p = this.pedidos.find(p => p.id === id);
-                if (p) p.estado = estado;
-            } catch { alert("Error al cambiar estado"); }
-        },
-        badgeEstado(e) {
-            const m = { CREADO: "badge-accent", VALIDADO: "badge-warning", APROBADO: "badge-success", RECHAZADO: "badge-danger", EN_PREPARACION: "badge-warning" };
-            return m[e] || "badge-accent";
-        },
-        formatFecha(f) {
-            if (!f) return "-";
-            return new Date(f).toLocaleDateString("es-CL");
+        iniciales(nombre) {
+            if (!nombre) return "?";
+            return nombre.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
         }
     }
 }

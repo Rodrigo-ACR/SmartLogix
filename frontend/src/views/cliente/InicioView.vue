@@ -16,11 +16,13 @@
         <section class="hero container">
             <div class="hero-text">
                 <span class="hero-tag">Bienvenido, {{ nombre }} 👋</span>
-                <h1>Descubre productos de <span class="accent">PyMEs locales</span></h1>
-                <p>Apoya el comercio local y recibe tus productos directo desde el productor.</p>
+                <h1>Tu operación logística, <span class="accent">más inteligente</span></h1>
+                <p>Gestiona tus pedidos, controla tu inventario y rastrea tus envíos en tiempo real desde una sola
+                    plataforma.</p>
             </div>
             <div class="hero-search">
-                <input v-model="busqueda" type="text" placeholder="Buscar productos..." class="search-input" />
+                <input v-model="busqueda" type="text" placeholder="Buscar en el catálogo de productos..."
+                    class="search-input" />
             </div>
         </section>
 

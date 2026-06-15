@@ -17,6 +17,15 @@
                 <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
             </div>
 
+            <div class="filtros-bar">
+                <div class="filtro-search">
+                    <span class="search-icon">🔍</span>
+                    <input v-model="busqueda" type="text" placeholder="Buscar producto..." class="search-input" />
+                    <button v-if="busqueda" @click="busqueda = ''" class="search-clear">✕</button>
+                </div>
+                <span class="filtro-count">{{ productosFiltrados.length }} de {{ productos.length }}</span>
+            </div>
+
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
@@ -32,7 +41,7 @@
                         <tr v-if="loading">
                             <td colspan="5" class="text-center">Cargando...</td>
                         </tr>
-                        <tr v-for="p in productos" :key="p.id">
+                        <tr v-for="p in productosFiltrados" :key="p.id">
                             <td class="text-muted">#{{ p.id }}</td>
                             <td>
                                 <div class="producto-nombre-cell">
@@ -141,6 +150,7 @@ export default {
             guardando: false,
             error: "",
             errorCarga: "",
+            busqueda: "",
             subiendo: null,
             slotActual: null,
             form: {
@@ -155,6 +165,16 @@ export default {
         };
     },
     async mounted() { await this.cargar(); },
+    computed: {
+        productosFiltrados() {
+            const texto = this.busqueda.toLowerCase();
+            if (!texto) return this.productos;
+            return this.productos.filter(p =>
+                (p.nombre || "").toLowerCase().includes(texto) ||
+                (p.descripcion || "").toLowerCase().includes(texto)
+            );
+        }
+    },
     methods: {
         async cargar() {
             this.loading = true;
@@ -185,11 +205,19 @@ export default {
             try {
                 if (this.editando) {
                     await editarProducto(this.editando.id, this.form);
+                    // Actualizar el producto en el array local inmediatamente
+                    const idx = this.productos.findIndex(p => p.id === this.editando.id);
+                    if (idx !== -1) {
+                        this.productos[idx] = { ...this.productos[idx], ...this.form };
+                        this.productos = [...this.productos]; // forzar reactividad Vue
+                    }
+                    window.$toast.mostrar("Producto actualizado correctamente", "success");
                 } else {
-                    await crearProducto(this.form);
+                    const nuevo = await crearProducto(this.form);
+                    this.productos.unshift(nuevo); // agregar al inicio sin recargar
+                    window.$toast.mostrar("Producto creado correctamente", "success");
                 }
                 this.modal = false;
-                await this.cargar();
             } catch {
                 this.error = "Error al guardar";
             }

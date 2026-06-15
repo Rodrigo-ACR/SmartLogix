@@ -17,7 +17,8 @@ async function fetchJSON(url, options = {}) {
         const err = await res.json().catch(() => ({ mensaje: "Error del servidor" }));
         throw new Error(err.mensaje || `HTTP ${res.status}`);
     }
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
 }
 
 // AUTH

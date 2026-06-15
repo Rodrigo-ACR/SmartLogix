@@ -5,12 +5,12 @@
             <div class="login-brand">
                 <span class="brand-icon">⚡</span>
                 <h1>SmartLogix</h1>
-                <p>La plataforma de gestión para PyMEs que venden en línea</p>
+                <p>Plataforma inteligente para la gestión logística de eCommerce en PyMEs</p>
             </div>
             <div class="login-features">
-                <div class="feature">🛍️ Gestiona tu catálogo</div>
-                <div class="feature">📦 Controla tus pedidos</div>
-                <div class="feature">🚚 Rastrea tus envíos</div>
+                <div class="feature">📦 Inventario y stock en tiempo real</div>
+                <div class="feature">🛒 Gestión de pedidos automatizada</div>
+                <div class="feature">🚚 Trazabilidad completa de envíos</div>
             </div>
         </div>
 

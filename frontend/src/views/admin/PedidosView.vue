@@ -13,6 +13,25 @@
                 <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
             </div>
 
+            <!-- Barra búsqueda y filtro -->
+            <div class="filtros-bar">
+                <div class="filtro-search">
+                    <span class="search-icon">🔍</span>
+                    <input v-model="busqueda" type="text" placeholder="Buscar por cliente, producto o ID..."
+                        class="search-input" />
+                    <button v-if="busqueda" @click="busqueda = ''" class="search-clear">✕</button>
+                </div>
+                <select v-model="filtroEstado" class="filtro-select">
+                    <option value="">Todos los estados</option>
+                    <option value="CREADO">CREADO</option>
+                    <option value="VALIDADO">VALIDADO</option>
+                    <option value="APROBADO">APROBADO</option>
+                    <option value="EN_PREPARACION">EN_PREPARACION</option>
+                    <option value="RECHAZADO">RECHAZADO</option>
+                </select>
+                <span class="filtro-count">{{ pedidosFiltrados.length }} de {{ pedidos.length }}</span>
+            </div>
+
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
@@ -30,7 +49,7 @@
                         <tr v-if="loading">
                             <td colspan="7" class="text-center">Cargando...</td>
                         </tr>
-                        <tr v-for="p in pedidos" :key="p.id">
+                        <tr v-for="p in pedidosFiltrados" :key="p.id">
                             <td class="text-muted">#{{ p.id }}</td>
                             <td>{{ p.cliente }}</td>
                             <td>{{ p.nombreProducto || '-' }}</td>
@@ -62,7 +81,20 @@ import "@/assets/styles/pedidosview.css";
 export default {
     components: { NavbarAdmin },
     data() {
-        return { pedidos: [], loading: true, error: "" };
+        return { pedidos: [], loading: true, error: "", busqueda: "", filtroEstado: "" };
+    },
+    computed: {
+        pedidosFiltrados() {
+            return this.pedidos.filter(p => {
+                const texto = this.busqueda.toLowerCase();
+                const coincide = !texto ||
+                    (p.cliente || "").toLowerCase().includes(texto) ||
+                    (p.nombreProducto || "").toLowerCase().includes(texto) ||
+                    String(p.id).includes(texto);
+                const estado = !this.filtroEstado || p.estado === this.filtroEstado;
+                return coincide && estado;
+            });
+        }
     },
     async mounted() {
         try { this.pedidos = await getPedidos(); } catch { this.error = "⚠️ No se pudieron cargar los pedidos. Servicio temporalmente no disponible."; }

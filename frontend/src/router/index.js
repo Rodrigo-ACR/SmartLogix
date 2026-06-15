@@ -10,6 +10,7 @@ import AdminProductos from "../views/admin/ProductosView.vue";
 import AdminPedidos from "../views/admin/PedidosView.vue";
 import AdminEnvios from "../views/admin/EnviosView.vue";
 import AdminClientes from "../views/admin/ClientesView.vue";
+import NotFoundView from "../views/NotFoundView.vue";
 
 const routes = [
     { path: "/", redirect: "/login" },
@@ -27,6 +28,7 @@ const routes = [
     { path: "/admin/pedidos", component: AdminPedidos, meta: { requiresAuth: true, rol: "ADMIN" } },
     { path: "/admin/envios", component: AdminEnvios, meta: { requiresAuth: true, rol: "ADMIN" } },
     { path: "/admin/clientes", component: AdminClientes, meta: { requiresAuth: true, rol: "ADMIN" } },
+    { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFoundView },
 ];
 
 const router = createRouter({

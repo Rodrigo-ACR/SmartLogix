@@ -10,7 +10,7 @@
                 </div>
             </div>
 
-            <!-- Banner error si algún servicio falló -->
+            <!-- Banner error -->
             <div v-if="serviciosCaidos.length > 0" class="error-banner-admin" style="margin-bottom:1.5rem">
                 <span>🔴</span>
                 <div>
@@ -20,6 +20,7 @@
                 <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
             </div>
 
+            <!-- Stats cards -->
             <div class="stats-grid">
                 <div class="stat-card card" @click="$router.push('/admin/productos')">
                     <div class="stat-icon">🛍️</div>
@@ -63,6 +64,43 @@
                 </div>
             </div>
 
+            <!-- Gráficos -->
+            <div class="dash-grid" style="margin-bottom:1.5rem">
+                <!-- Dona: pedidos por estado -->
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <h3>📦 Pedidos por estado</h3>
+                        <span class="chart-total">{{ stats.pedidos }} total</span>
+                    </div>
+                    <div v-if="errores.pedidos" class="empty-mini text-danger">⚠️ Servicio no disponible</div>
+                    <div v-else-if="stats.pedidos === 0" class="empty-mini">Sin pedidos aún</div>
+                    <div v-else class="chart-wrap">
+                        <canvas ref="chartPedidos"></canvas>
+                        <div class="chart-legend">
+                            <div v-for="(item, i) in pedidosStats" :key="i" class="legend-item">
+                                <span class="legend-dot" :style="{ background: item.color }"></span>
+                                <span class="legend-label">{{ item.label }}</span>
+                                <span class="legend-val">{{ item.value }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barras: envíos por estado -->
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <h3>🚚 Envíos por estado</h3>
+                        <span class="chart-total">{{ stats.envios }} total</span>
+                    </div>
+                    <div v-if="errores.envios" class="empty-mini text-danger">⚠️ Servicio no disponible</div>
+                    <div v-else-if="stats.envios === 0" class="empty-mini">Sin envíos aún</div>
+                    <div v-else class="chart-wrap">
+                        <canvas ref="chartEnvios"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimos registros -->
             <div class="dash-grid">
                 <div class="card dash-section">
                     <h3>Últimos pedidos</h3>
@@ -99,6 +137,9 @@ import Icons from "../../components/Icons.vue";
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
 import { getProductos, getPedidos, getEnvios, getUsuarios } from "../../services/api";
 import "@/assets/styles/admindashboardview.css";
+import { Chart, DoughnutController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
+
+Chart.register(DoughnutController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default {
     components: { Icons, NavbarAdmin },
@@ -108,19 +149,20 @@ export default {
             stats: { productos: 0, pedidos: 0, envios: 0, clientes: 0 },
             errores: { productos: false, pedidos: false, envios: false, clientes: false },
             pedidos: [],
-            envios: []
+            envios: [],
+            pedidosStats: [],
+            enviosStats: [],
+            chartPedidosInst: null,
+            chartEnviosInst: null
         };
     },
     computed: {
         serviciosCaidos() {
             const nombres = { productos: "Inventario", pedidos: "Pedidos", envios: "Envíos", clientes: "Usuarios" };
-            return Object.entries(this.errores)
-                .filter(([, v]) => v)
-                .map(([k]) => nombres[k]);
+            return Object.entries(this.errores).filter(([, v]) => v).map(([k]) => nombres[k]);
         }
     },
     async mounted() {
-        // Cada llamada es independiente — si una falla, las demás siguen
         const [productos, pedidos, envios, usuarios] = await Promise.allSettled([
             getProductos(), getPedidos(), getEnvios(), getUsuarios()
         ]);
@@ -132,18 +174,81 @@ export default {
         if (pedidos.status === "fulfilled") {
             this.stats.pedidos = pedidos.value.length;
             this.pedidos = [...pedidos.value].reverse();
+            this.calcularEstadosPedidos(pedidos.value);
         } else { this.errores.pedidos = true; }
 
         if (envios.status === "fulfilled") {
             this.stats.envios = envios.value.length;
             this.envios = [...envios.value].reverse();
+            this.calcularEstadosEnvios(envios.value);
         } else { this.errores.envios = true; }
 
         if (usuarios.status === "fulfilled") {
             this.stats.clientes = usuarios.value.filter(u => u.rol === "CLIENTE").length;
         } else { this.errores.clientes = true; }
+
+        await this.$nextTick();
+        if (this.pedidosStats.length) this.renderChartPedidos();
+        if (this.enviosStats.length) this.renderChartEnvios();
     },
     methods: {
+        calcularEstadosPedidos(data) {
+            const colores = {
+                CREADO: "#7c5cfc", VALIDADO: "#f59e0b", APROBADO: "#22c55e",
+                EN_PREPARACION: "#0d9488", RECHAZADO: "#ef4444"
+            };
+            const conteo = {};
+            data.forEach(p => { conteo[p.estado] = (conteo[p.estado] || 0) + 1; });
+            this.pedidosStats = Object.entries(conteo).map(([label, value]) => ({
+                label, value, color: colores[label] || "#64748b"
+            }));
+        },
+        calcularEstadosEnvios(data) {
+            const colores = {
+                PENDIENTE: "#f59e0b", ASIGNADO: "#7c5cfc",
+                EN_TRANSITO: "#0d9488", ENTREGADO: "#22c55e", INCIDENCIA: "#ef4444"
+            };
+            const conteo = {};
+            data.forEach(e => { conteo[e.estado] = (conteo[e.estado] || 0) + 1; });
+            this.enviosStats = Object.entries(conteo).map(([label, value]) => ({
+                label, value, color: colores[label] || "#64748b"
+            }));
+        },
+        renderChartPedidos() {
+            if (!this.$refs.chartPedidos) return;
+            this.chartPedidosInst = new Chart(this.$refs.chartPedidos, {
+                type: "doughnut",
+                data: {
+                    labels: this.pedidosStats.map(s => s.label),
+                    datasets: [{ data: this.pedidosStats.map(s => s.value), backgroundColor: this.pedidosStats.map(s => s.color), borderWidth: 0, hoverOffset: 6 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: "70%",
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } }
+                }
+            });
+        },
+        renderChartEnvios() {
+            if (!this.$refs.chartEnvios) return;
+            this.chartEnviosInst = new Chart(this.$refs.chartEnvios, {
+                type: "bar",
+                data: {
+                    labels: this.enviosStats.map(s => s.label),
+                    datasets: [{ data: this.enviosStats.map(s => s.value), backgroundColor: this.enviosStats.map(s => s.color), borderRadius: 8, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} envíos` } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: "#64748b", font: { size: 11 } } },
+                        y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b", stepSize: 1 }, beginAtZero: true }
+                    }
+                }
+            });
+        },
         badgeEstado(e) {
             const m = { CREADO: "badge-accent", VALIDADO: "badge-warning", APROBADO: "badge-success", RECHAZADO: "badge-danger" };
             return m[e] || "badge-accent";
@@ -152,6 +257,10 @@ export default {
             const m = { PENDIENTE: "badge-warning", ASIGNADO: "badge-accent", EN_TRANSITO: "badge-warning", ENTREGADO: "badge-success" };
             return m[e] || "badge-accent";
         }
+    },
+    beforeUnmount() {
+        if (this.chartPedidosInst) this.chartPedidosInst.destroy();
+        if (this.chartEnviosInst) this.chartEnviosInst.destroy();
     }
 }
 </script>
@@ -164,5 +273,87 @@ export default {
 
 .text-danger {
     color: var(--danger);
+}
+
+.chart-card {
+    padding: 1.2rem 1.5rem;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.chart-total {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.chart-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.chart-wrap canvas {
+    max-width: 160px;
+    max-height: 160px;
+    flex-shrink: 0;
+}
+
+.chart-legend {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.legend-val {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.empty-mini {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+@media (max-width:600px) {
+    .chart-wrap {
+        flex-direction: column;
+    }
+
+    .chart-wrap canvas {
+        max-width: 140px;
+        max-height: 140px;
+    }
 }
 </style>
