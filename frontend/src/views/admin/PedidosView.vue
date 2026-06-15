@@ -74,7 +74,7 @@ export default {
                 await cambiarEstadoPedido(id, estado);
                 const p = this.pedidos.find(p => p.id === id);
                 if (p) p.estado = estado;
-            } catch { alert("Error al cambiar estado"); }
+            } catch { window.$toast.mostrar("Error al cambiar estado del pedido", "error"); }
         },
         badgeEstado(e) {
             const m = { CREADO: "badge-accent", VALIDADO: "badge-warning", APROBADO: "badge-success", RECHAZADO: "badge-danger", EN_PREPARACION: "badge-warning" };

@@ -62,6 +62,13 @@
                         </div>
                     </div>
 
+                    <!-- Botón cancelar (solo CREADO) -->
+                    <div v-if="p.estado === 'CREADO' && !envioDeP(p.id)" style="margin-bottom:1rem">
+                        <button class="btn-cancelar-pedido" @click="cancelarPedido(p)">
+                            ✕ Cancelar pedido
+                        </button>
+                    </div>
+
                     <!-- PROGRESS BAR COMPLETO -->
                     <div class="pedido-progress">
                         <div v-for="(est, i) in todosLosEstados" :key="i" class="progress-step" :class="{
@@ -92,7 +99,7 @@
 
 <script>
 import NavbarCliente from "../../components/NavbarCliente.vue";
-import { getPedidos, getEnvios } from "../../services/api";
+import { getPedidos, getEnvios, cambiarEstadoPedido } from "../../services/api";
 import "@/assets/styles/mispedidosview.css";
 
 const TODOS_ESTADOS = [
@@ -167,6 +174,21 @@ export default {
                 INCIDENCIA: "badge-danger"
             };
             return map[estado] || "badge-accent";
+        },
+        async cancelarPedido(p) {
+            const ok = await window.$confirm.abrir({
+                titulo: "¿Cancelar este pedido?",
+                mensaje: "El pedido #" + p.id + " de " + (p.nombreProducto || "producto") + " será cancelado. Esta acción no se puede deshacer.",
+                icono: "❌", tipo: "danger", textoConfirmar: "Sí, cancelar"
+            });
+            if (!ok) return;
+            try {
+                await cambiarEstadoPedido(p.id, "RECHAZADO");
+                p.estado = "RECHAZADO";
+                window.$toast.mostrar("Pedido #" + p.id + " cancelado", "info");
+            } catch {
+                window.$toast.mostrar("No se pudo cancelar el pedido", "error");
+            }
         },
         formatFecha(f) {
             if (!f) return "-";

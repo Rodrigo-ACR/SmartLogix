@@ -226,6 +226,7 @@ export default {
                 }
                 this.carrito = [];
                 this.mostrarCarrito = false;
+                window.$toast.mostrar("¡Pedido realizado con éxito! 🎉", "success", 4000);
                 this.$router.push("/mis-pedidos");
             } catch {
                 alert("Error al crear el pedido");
@@ -255,21 +256,25 @@ export default {
     margin: 1.5rem 0;
     animation: slideIn 0.4s ease;
 }
+
 .error-icon {
     font-size: 2rem;
     flex-shrink: 0;
 }
+
 .error-banner strong {
     color: #ef4444;
     font-size: 1rem;
     display: block;
     margin-bottom: 0.3rem;
 }
+
 .error-banner p {
     color: #94a3b8;
     font-size: 0.85rem;
     margin: 0;
 }
+
 .btn-retry {
     margin-left: auto;
     flex-shrink: 0;
@@ -283,11 +288,20 @@ export default {
     font-weight: 600;
     transition: all 0.2s;
 }
+
 .btn-retry:hover {
     background: #ef444433;
 }
+
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>

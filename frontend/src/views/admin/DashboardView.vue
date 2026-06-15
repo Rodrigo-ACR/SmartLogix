@@ -29,7 +29,7 @@
                             {{ errores.productos ? '—' : stats.productos }}
                         </span>
                     </div>
-                    <span class="stat-arrow">→</span>
+                    <Icons name="arrow" :size="20" />
                 </div>
                 <div class="stat-card card" @click="$router.push('/admin/pedidos')">
                     <div class="stat-icon">📦</div>
@@ -39,7 +39,7 @@
                             {{ errores.pedidos ? '—' : stats.pedidos }}
                         </span>
                     </div>
-                    <span class="stat-arrow">→</span>
+                    <Icons name="arrow" :size="20" />
                 </div>
                 <div class="stat-card card" @click="$router.push('/admin/envios')">
                     <div class="stat-icon">🚚</div>
@@ -49,7 +49,7 @@
                             {{ errores.envios ? '—' : stats.envios }}
                         </span>
                     </div>
-                    <span class="stat-arrow">→</span>
+                    <Icons name="arrow" :size="20" />
                 </div>
                 <div class="stat-card card" @click="$router.push('/admin/clientes')">
                     <div class="stat-icon">👥</div>
@@ -59,7 +59,7 @@
                             {{ errores.clientes ? '—' : stats.clientes }}
                         </span>
                     </div>
-                    <span class="stat-arrow">→</span>
+                    <Icons name="arrow" :size="20" />
                 </div>
             </div>
 
@@ -95,12 +95,13 @@
 </template>
 
 <script>
+import Icons from "../../components/Icons.vue";
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
 import { getProductos, getPedidos, getEnvios, getUsuarios } from "../../services/api";
 import "@/assets/styles/admindashboardview.css";
 
 export default {
-    components: { NavbarAdmin },
+    components: { Icons, NavbarAdmin },
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Admin",

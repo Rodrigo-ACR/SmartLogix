@@ -197,7 +197,12 @@ export default {
         },
 
         async confirmarEliminar(id) {
-            if (confirm("¿Eliminar este producto?")) {
+            const ok = await window.$confirm.abrir({
+                titulo: "¿Eliminar producto?",
+                mensaje: "Esta acción no se puede deshacer. El producto será eliminado permanentemente.",
+                icono: "🗑️", tipo: "danger", textoConfirmar: "Sí, eliminar"
+            });
+            if (ok) {
                 await eliminarProducto(id);
                 await this.cargar();
             }

@@ -254,7 +254,7 @@ export default {
                 await cambiarEstadoEnvio(id, estado);
                 const e = this.envios.find(e => e.id === id);
                 if (e) e.estado = estado;
-            } catch { alert("Error al cambiar estado"); }
+            } catch { window.$toast.mostrar("Error al cambiar estado del envío", "error"); }
         },
         badgeEnvio(e) {
             const m = {
