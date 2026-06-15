@@ -10,6 +10,16 @@ export const getHeaders = () => ({
     Authorization: "Bearer " + getToken()
 });
 
+// Helper que lanza error si la respuesta no es 2xx
+async function fetchJSON(url, options = {}) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ mensaje: "Error del servidor" }));
+        throw new Error(err.mensaje || `HTTP ${res.status}`);
+    }
+    return res.json();
+}
+
 // AUTH
 export async function login(correo, password) {
     const res = await fetch(`${BASE_URL}/auth/login`, {
@@ -31,82 +41,69 @@ export async function register(data) {
 
 // PRODUCTOS
 export async function getProductos() {
-    const res = await fetch(`${BASE_URL}/api/productos`, { headers: getHeaders() });
-    return res.json();
+    return fetchJSON(`${BASE_URL}/api/productos`, { headers: getHeaders() });
 }
 
 export async function crearProducto(data) {
-    const res = await fetch(`${BASE_URL}/api/productos`, {
+    return fetchJSON(`${BASE_URL}/api/productos`, {
         method: "POST", headers: getHeaders(), body: JSON.stringify(data)
     });
-    return res.json();
 }
 
 export async function editarProducto(id, data) {
-    const res = await fetch(`${BASE_URL}/api/productos/${id}`, {
+    return fetchJSON(`${BASE_URL}/api/productos/${id}`, {
         method: "PUT", headers: getHeaders(), body: JSON.stringify(data)
     });
-    return res.json();
 }
 
 export async function eliminarProducto(id) {
-    await fetch(`${BASE_URL}/api/productos/${id}`, {
+    const res = await fetch(`${BASE_URL}/api/productos/${id}`, {
         method: "DELETE", headers: getHeaders()
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
 // PEDIDOS
 export async function getPedidos() {
-    const res = await fetch(`${BASE_URL}/api/productos/pedidos`, { headers: getHeaders() });
-    return res.json();
+    return fetchJSON(`${BASE_URL}/api/productos/pedidos`, { headers: getHeaders() });
 }
 
 export async function crearPedido(data) {
-    const res = await fetch(`${BASE_URL}/api/productos/pedidos`, {
+    return fetchJSON(`${BASE_URL}/api/productos/pedidos`, {
         method: "POST", headers: getHeaders(), body: JSON.stringify(data)
     });
-    return res.json();
 }
 
 export async function cambiarEstadoPedido(id, estado) {
-    const res = await fetch(`${BASE_URL}/api/productos/pedidos/${id}/estado?estado=${estado}`, {
+    return fetchJSON(`${BASE_URL}/api/productos/pedidos/${id}/estado?estado=${estado}`, {
         method: "PATCH", headers: getHeaders()
     });
-    return res.json();
 }
 
 // ENVIOS
 export async function getEnvios() {
-    const res = await fetch(`${BASE_URL}/api/productos/envios`, { headers: getHeaders() });
-    return res.json();
+    return fetchJSON(`${BASE_URL}/api/productos/envios`, { headers: getHeaders() });
 }
 
 export async function crearEnvio(data) {
-    const res = await fetch(`${BASE_URL}/api/productos/envios`, {
+    return fetchJSON(`${BASE_URL}/api/productos/envios`, {
         method: "POST", headers: getHeaders(), body: JSON.stringify(data)
     });
-    return res.json();
 }
 
 export async function cambiarEstadoEnvio(id, estado) {
-    const res = await fetch(`${BASE_URL}/api/productos/envios/${id}/estado?estado=${estado}`, {
+    return fetchJSON(`${BASE_URL}/api/productos/envios/${id}/estado?estado=${estado}`, {
         method: "PATCH", headers: getHeaders()
     });
-    return res.json();
 }
 
 // USUARIOS
 export async function getUsuarios() {
-    const res = await fetch(`${BASE_URL}/api/productos/usuarios`, { headers: getHeaders() });
-    return res.json();
+    return fetchJSON(`${BASE_URL}/api/productos/usuarios`, { headers: getHeaders() });
 }
 
-// Solo para admin
 export async function actualizarUsuario(id, data) {
-    const res = await fetch(`${BASE_URL}/api/productos/usuarios/${id}`, {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify(data)
+    return fetchJSON(`${BASE_URL}/api/productos/usuarios/${id}`, {
+        method: "PUT", headers: getHeaders(), body: JSON.stringify(data)
     });
-    return res.json();
 }

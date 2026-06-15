@@ -10,12 +10,24 @@
                 </div>
             </div>
 
+            <!-- Banner error si algún servicio falló -->
+            <div v-if="serviciosCaidos.length > 0" class="error-banner-admin" style="margin-bottom:1.5rem">
+                <span>🔴</span>
+                <div>
+                    <strong>⚠️ Servicios no disponibles: {{ serviciosCaidos.join(', ') }}</strong>
+                    <p>Los contadores de esos servicios no están disponibles temporalmente.</p>
+                </div>
+                <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card card" @click="$router.push('/admin/productos')">
                     <div class="stat-icon">🛍️</div>
                     <div class="stat-info">
                         <span class="stat-label">Productos</span>
-                        <span class="stat-value">{{ stats.productos }}</span>
+                        <span class="stat-value" :class="{ 'stat-error': errores.productos }">
+                            {{ errores.productos ? '—' : stats.productos }}
+                        </span>
                     </div>
                     <span class="stat-arrow">→</span>
                 </div>
@@ -23,7 +35,9 @@
                     <div class="stat-icon">📦</div>
                     <div class="stat-info">
                         <span class="stat-label">Pedidos</span>
-                        <span class="stat-value">{{ stats.pedidos }}</span>
+                        <span class="stat-value" :class="{ 'stat-error': errores.pedidos }">
+                            {{ errores.pedidos ? '—' : stats.pedidos }}
+                        </span>
                     </div>
                     <span class="stat-arrow">→</span>
                 </div>
@@ -31,7 +45,9 @@
                     <div class="stat-icon">🚚</div>
                     <div class="stat-info">
                         <span class="stat-label">Envíos</span>
-                        <span class="stat-value">{{ stats.envios }}</span>
+                        <span class="stat-value" :class="{ 'stat-error': errores.envios }">
+                            {{ errores.envios ? '—' : stats.envios }}
+                        </span>
                     </div>
                     <span class="stat-arrow">→</span>
                 </div>
@@ -39,7 +55,9 @@
                     <div class="stat-icon">👥</div>
                     <div class="stat-info">
                         <span class="stat-label">Clientes</span>
-                        <span class="stat-value">{{ stats.clientes }}</span>
+                        <span class="stat-value" :class="{ 'stat-error': errores.clientes }">
+                            {{ errores.clientes ? '—' : stats.clientes }}
+                        </span>
                     </div>
                     <span class="stat-arrow">→</span>
                 </div>
@@ -48,7 +66,8 @@
             <div class="dash-grid">
                 <div class="card dash-section">
                     <h3>Últimos pedidos</h3>
-                    <div v-if="pedidos.length === 0" class="empty-mini">Sin pedidos aún</div>
+                    <div v-if="errores.pedidos" class="empty-mini text-danger">⚠️ Servicio no disponible</div>
+                    <div v-else-if="pedidos.length === 0" class="empty-mini">Sin pedidos aún</div>
                     <div v-for="p in pedidos.slice(0, 5)" :key="p.id" class="mini-row">
                         <div>
                             <span class="mini-id">#{{ p.id }}</span>
@@ -59,7 +78,8 @@
                 </div>
                 <div class="card dash-section">
                     <h3>Últimos envíos</h3>
-                    <div v-if="envios.length === 0" class="empty-mini">Sin envíos aún</div>
+                    <div v-if="errores.envios" class="empty-mini text-danger">⚠️ Servicio no disponible</div>
+                    <div v-else-if="envios.length === 0" class="empty-mini">Sin envíos aún</div>
                     <div v-for="e in envios.slice(0, 5)" :key="e.id" class="mini-row">
                         <div>
                             <span class="mini-id">#{{ e.id }}</span>
@@ -85,22 +105,42 @@ export default {
         return {
             nombre: localStorage.getItem("nombre") || "Admin",
             stats: { productos: 0, pedidos: 0, envios: 0, clientes: 0 },
+            errores: { productos: false, pedidos: false, envios: false, clientes: false },
             pedidos: [],
             envios: []
         };
     },
+    computed: {
+        serviciosCaidos() {
+            const nombres = { productos: "Inventario", pedidos: "Pedidos", envios: "Envíos", clientes: "Usuarios" };
+            return Object.entries(this.errores)
+                .filter(([, v]) => v)
+                .map(([k]) => nombres[k]);
+        }
+    },
     async mounted() {
-        try {
-            const [productos, pedidos, envios, usuarios] = await Promise.all([
-                getProductos(), getPedidos(), getEnvios(), getUsuarios()
-            ]);
-            this.stats.productos = productos.length;
-            this.stats.pedidos = pedidos.length;
-            this.stats.envios = envios.length;
-            this.stats.clientes = usuarios.filter(u => u.rol === "CLIENTE").length;
-            this.pedidos = pedidos.reverse();
-            this.envios = envios.reverse();
-        } catch { }
+        // Cada llamada es independiente — si una falla, las demás siguen
+        const [productos, pedidos, envios, usuarios] = await Promise.allSettled([
+            getProductos(), getPedidos(), getEnvios(), getUsuarios()
+        ]);
+
+        if (productos.status === "fulfilled") {
+            this.stats.productos = productos.value.length;
+        } else { this.errores.productos = true; }
+
+        if (pedidos.status === "fulfilled") {
+            this.stats.pedidos = pedidos.value.length;
+            this.pedidos = [...pedidos.value].reverse();
+        } else { this.errores.pedidos = true; }
+
+        if (envios.status === "fulfilled") {
+            this.stats.envios = envios.value.length;
+            this.envios = [...envios.value].reverse();
+        } else { this.errores.envios = true; }
+
+        if (usuarios.status === "fulfilled") {
+            this.stats.clientes = usuarios.value.filter(u => u.rol === "CLIENTE").length;
+        } else { this.errores.clientes = true; }
     },
     methods: {
         badgeEstado(e) {
@@ -114,3 +154,14 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.stat-error {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+.text-danger {
+    color: var(--danger);
+}
+</style>

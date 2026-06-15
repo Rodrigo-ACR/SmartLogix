@@ -7,6 +7,15 @@
                 <button class="btn-primary" @click="abrirModal">+ Nuevo Envío</button>
             </div>
 
+            <div v-if="errorCarga" class="error-banner-admin">
+                <span>🔴</span>
+                <div>
+                    <strong>{{ errorCarga }}</strong>
+                    <p>El sistema se recuperará automáticamente cuando el servicio vuelva a estar disponible.</p>
+                </div>
+                <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
+            </div>
+
             <!-- TABLA 1: Envíos activos -->
             <div class="seccion-titulo">
                 <span class="dot-activo"></span>
@@ -166,6 +175,7 @@ export default {
             pedidosEnPreparacion: [],
             usuarios: [],
             creando: false,
+            errorCarga: "",
             errorModal: "",
             transportistaSeleccionado: "",
             nuevoEnvio: {
@@ -185,7 +195,7 @@ export default {
         }
     },
     async mounted() {
-        try { this.envios = await getEnvios(); } catch { }
+        try { this.envios = await getEnvios(); } catch { this.errorCarga = "⚠️ No se pudieron cargar los envíos. Servicio temporalmente no disponible."; }
         this.loading = false;
     },
     methods: {

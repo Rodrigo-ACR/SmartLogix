@@ -210,3 +210,63 @@ textarea {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
 }
+
+/* Banner de error Circuit Breaker - global */
+.error-banner-admin {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInDown 0.4s ease;
+}
+
+.error-banner-admin>span {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.error-banner-admin strong {
+    color: var(--danger);
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.error-banner-admin p {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.btn-retry-admin {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius);
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-retry-admin:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

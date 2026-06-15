@@ -4,6 +4,15 @@
         <div class="container page">
             <h1 class="page-title">Pedidos</h1>
 
+            <div v-if="error" class="error-banner-admin">
+                <span>🔴</span>
+                <div>
+                    <strong>{{ error }}</strong>
+                    <p>El sistema se recuperará automáticamente cuando el servicio vuelva a estar disponible.</p>
+                </div>
+                <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
+            </div>
+
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
@@ -53,10 +62,10 @@ import "@/assets/styles/pedidosview.css";
 export default {
     components: { NavbarAdmin },
     data() {
-        return { pedidos: [], loading: true };
+        return { pedidos: [], loading: true, error: "" };
     },
     async mounted() {
-        try { this.pedidos = await getPedidos(); } catch { }
+        try { this.pedidos = await getPedidos(); } catch { this.error = "⚠️ No se pudieron cargar los pedidos. Servicio temporalmente no disponible."; }
         this.loading = false;
     },
     methods: {

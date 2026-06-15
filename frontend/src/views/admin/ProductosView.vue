@@ -8,6 +8,15 @@
                 <button class="btn btn-primary" @click="abrirModal()">+ Nuevo producto</button>
             </div>
 
+            <div v-if="errorCarga" class="error-banner-admin">
+                <span>🔴</span>
+                <div>
+                    <strong>{{ errorCarga }}</strong>
+                    <p>El sistema se recuperará automáticamente cuando el servicio vuelva a estar disponible.</p>
+                </div>
+                <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
+            </div>
+
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
@@ -131,6 +140,7 @@ export default {
             editando: null,
             guardando: false,
             error: "",
+            errorCarga: "",
             subiendo: null,
             slotActual: null,
             form: {
@@ -148,7 +158,7 @@ export default {
     methods: {
         async cargar() {
             this.loading = true;
-            try { this.productos = await getProductos(); } catch { }
+            try { this.productos = await getProductos(); } catch { this.errorCarga = "⚠️ No se pudieron cargar los productos. Servicio temporalmente no disponible."; }
             this.loading = false;
         },
 

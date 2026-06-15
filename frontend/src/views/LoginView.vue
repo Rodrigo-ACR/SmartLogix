@@ -32,8 +32,27 @@
                         <label>Contraseña</label>
                         <input v-model="password" type="password" placeholder="••••••••" required />
                     </div>
-                    <p v-if="error" class="error-msg">{{ error }}</p>
-                    <button type="submit" class="btn btn-primary w-full" :disabled="loading">
+                    <!-- Error normal (1-4 intentos) -->
+                    <p v-if="error && errorTipo === 'normal'" class="error-msg">{{ error }}</p>
+
+                    <!-- Error de bloqueo (5+ intentos) -->
+                    <div v-if="error && errorTipo === 'bloqueo'" class="bloqueo-banner">
+                        <div class="bloqueo-icon">🔒</div>
+                        <div>
+                            <strong>Demasiados intentos fallidos</strong>
+                            <p>{{ error }}</p>
+                            <p v-if="timerSegundos > 0" class="bloqueo-timer">Espera {{ timerSegundos }}s para volver a
+                                intentar</p>
+                        </div>
+                    </div>
+
+                    <!-- Error de servicio caído -->
+                    <div v-if="error && errorTipo === 'servicio'" class="servicio-banner">
+                        <span>⚠️</span>
+                        <p>{{ error }}</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full" :disabled="loading || bloqueado">
                         {{ loading ? 'Ingresando...' : 'Ingresar' }}
                     </button>
                 </form>
@@ -60,8 +79,27 @@
                         <label>Dirección</label>
                         <input v-model="reg.direccion" type="text" placeholder="Calle 123" />
                     </div>
-                    <p v-if="error" class="error-msg">{{ error }}</p>
-                    <button type="submit" class="btn btn-primary w-full" :disabled="loading">
+                    <!-- Error normal (1-4 intentos) -->
+                    <p v-if="error && errorTipo === 'normal'" class="error-msg">{{ error }}</p>
+
+                    <!-- Error de bloqueo (5+ intentos) -->
+                    <div v-if="error && errorTipo === 'bloqueo'" class="bloqueo-banner">
+                        <div class="bloqueo-icon">🔒</div>
+                        <div>
+                            <strong>Demasiados intentos fallidos</strong>
+                            <p>{{ error }}</p>
+                            <p v-if="timerSegundos > 0" class="bloqueo-timer">Espera {{ timerSegundos }}s para volver a
+                                intentar</p>
+                        </div>
+                    </div>
+
+                    <!-- Error de servicio caído -->
+                    <div v-if="error && errorTipo === 'servicio'" class="servicio-banner">
+                        <span>⚠️</span>
+                        <p>{{ error }}</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full" :disabled="loading || bloqueado">
                         {{ loading ? 'Registrando...' : 'Crear cuenta' }}
                     </button>
                 </form>
@@ -82,17 +120,26 @@ export default {
             correo: "",
             password: "",
             error: "",
+            errorTipo: "normal",
+            intentos: 0,
+            bloqueado: false,
+            timerSegundos: 0,
             loading: false,
             reg: { nombre: "", correo: "", password: "", telefono: "", direccion: "" }
         };
     },
     methods: {
         async hacerLogin() {
+            if (this.bloqueado) return;
             this.loading = true;
             this.error = "";
-try {
+            try {
                 const data = await login(this.correo, this.password);
-                if (data.token) {
+                if (data.codigo === 503 || data.mensaje?.includes("no disponible")) {
+                    this.errorTipo = "servicio";
+                    this.error = "Servicio de usuarios temporalmente no disponible. Intenta en unos momentos.";
+                } else if (data.token) {
+                    this.intentos = 0;
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("rol", data.rol);
                     localStorage.setItem("nombre", data.nombre);
@@ -102,12 +149,35 @@ try {
                     }
                     this.$router.push(data.rol === "ADMIN" ? "/admin" : "/inicio");
                 } else {
-                    this.error = "Credenciales incorrectas";
+                    this.intentos++;
+                    if (this.intentos >= 5) {
+                        this.errorTipo = "bloqueo";
+                        this.error = "Has superado el límite de intentos. Verifica tus credenciales o espera antes de volver a intentarlo.";
+                        this.iniciarBloqueo(30);
+                    } else {
+                        this.errorTipo = "normal";
+                        this.error = "Credenciales incorrectas";
+                    }
                 }
             } catch {
-                this.error = "Error al conectar con el servidor";
+                this.errorTipo = "servicio";
+                this.error = "Servicio de usuarios temporalmente no disponible. Intenta en unos momentos.";
             }
             this.loading = false;
+        },
+        iniciarBloqueo(segundos) {
+            this.bloqueado = true;
+            this.timerSegundos = segundos;
+            const timer = setInterval(() => {
+                this.timerSegundos--;
+                if (this.timerSegundos <= 0) {
+                    clearInterval(timer);
+                    this.bloqueado = false;
+                    this.intentos = 0;
+                    this.error = "";
+                    this.errorTipo = "normal";
+                }
+            }, 1000);
         },
         async hacerRegister() {
             this.loading = true;
@@ -122,7 +192,7 @@ try {
                     this.error = data.mensaje || "Error al registrarse";
                 }
             } catch {
-                this.error = "Error al conectar con el servidor";
+                this.error = "⚠️ Servicio de usuarios temporalmente no disponible. Intenta en unos momentos.";
             }
             this.loading = false;
         }

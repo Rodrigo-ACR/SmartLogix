@@ -116,6 +116,30 @@ form {
     text-align: center;
 }
 
+@media (max-width: 900px) {
+    .login-left {
+        padding: 40px 30px;
+        flex: 0 0 300px;
+    }
+
+    .login-right {
+        width: 100%;
+        flex: 1;
+    }
+
+    .login-brand h1 {
+        font-size: 2.2rem;
+    }
+
+    .login-brand p {
+        font-size: 0.95rem;
+    }
+
+    .login-brand .brand-icon {
+        font-size: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .login-left {
         display: none;
@@ -123,5 +147,82 @@ form {
 
     .login-right {
         width: 100%;
+    }
+}
+
+/* Bloqueo por múltiples intentos */
+.bloqueo-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.8rem;
+    animation: shake 0.4s ease;
+}
+
+.bloqueo-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.bloqueo-banner strong {
+    color: #ef4444;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.bloqueo-banner p {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.bloqueo-timer {
+    color: #ef4444 !important;
+    font-weight: 600;
+    margin-top: 4px !important;
+    font-size: 0.85rem !important;
+}
+
+/* Servicio caído */
+.servicio-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: #f59e0b;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-6px);
+    }
+
+    40% {
+        transform: translateX(6px);
+    }
+
+    60% {
+        transform: translateX(-4px);
+    }
+
+    80% {
+        transform: translateX(4px);
     }
 }

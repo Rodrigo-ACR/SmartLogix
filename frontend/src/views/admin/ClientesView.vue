@@ -2,39 +2,50 @@
     <div>
         <NavbarAdmin />
         <div class="container page">
-            <h1 class="page-title">Clientes</h1>
+            <h1 class="page-title">Pedidos</h1>
+
+            <div v-if="error" class="error-banner-admin">
+                <span>🔴</span>
+                <div>
+                    <strong>{{ error }}</strong>
+                    <p>El sistema se recuperará automáticamente cuando el servicio vuelva a estar disponible.</p>
+                </div>
+                <button @click="$router.go(0)" class="btn-retry-admin">🔄 Reintentar</button>
+            </div>
 
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Teléfono</th>
-                            <th>Dirección</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Fecha</th>
                             <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="loading">
-                            <td colspan="6" class="text-center">Cargando...</td>
+                            <td colspan="7" class="text-center">Cargando...</td>
                         </tr>
-                        <tr v-for="u in clientes" :key="u.id">
-                            <td class="text-muted">#{{ u.id }}</td>
+                        <tr v-for="p in pedidos" :key="p.id">
+                            <td class="text-muted">#{{ p.id }}</td>
+                            <td>{{ p.cliente }}</td>
+                            <td>{{ p.nombreProducto || '-' }}</td>
+                            <td>{{ p.cantidad }}</td>
+                            <td>{{ formatFecha(p.fecha) }}</td>
+                            <td><span :class="badgeEstado(p.estado)" class="badge">{{ p.estado }}</span></td>
                             <td>
-                                <div class="user-cell">
-                                    <div class="user-avatar">{{ iniciales(u.nombre) }}</div>
-                                    <span>{{ u.nombre }}</span>
-                                </div>
-                            </td>
-                            <td>{{ u.correo }}</td>
-                            <td>{{ u.telefono || '-' }}</td>
-                            <td>{{ u.direccion || '-' }}</td>
-                            <td>
-                                <span :class="u.activo ? 'badge-success' : 'badge-danger'" class="badge">
-                                    {{ u.activo ? 'Activo' : 'Inactivo' }}
-                                </span>
+                                <select class="estado-select" :value="p.estado"
+                                    @change="cambiarEstado(p.id, $event.target.value)">
+                                    <option value="CREADO">CREADO</option>
+                                    <option value="VALIDADO">VALIDADO</option>
+                                    <option value="APROBADO">APROBADO</option>
+                                    <option value="RECHAZADO">RECHAZADO</option>
+                                    <option value="EN_PREPARACION">EN_PREPARACION</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
@@ -46,25 +57,32 @@
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
-import { getUsuarios } from "../../services/api";
-import "@/assets/styles/clientesview.css";
-
+import { getPedidos, cambiarEstadoPedido } from "../../services/api";
+import "@/assets/styles/pedidosview.css";
 export default {
     components: { NavbarAdmin },
     data() {
-        return { clientes: [], loading: true };
+        return { pedidos: [], loading: true, error: "" };
     },
     async mounted() {
-        try {
-            const todos = await getUsuarios();
-            this.clientes = todos.filter(u => u.rol === "CLIENTE");
-        } catch { }
+        try { this.pedidos = await getPedidos(); } catch { this.error = "⚠️ No se pudieron cargar los pedidos. Servicio temporalmente no disponible."; }
         this.loading = false;
     },
     methods: {
-        iniciales(nombre) {
-            if (!nombre) return "?";
-            return nombre.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+        async cambiarEstado(id, estado) {
+            try {
+                await cambiarEstadoPedido(id, estado);
+                const p = this.pedidos.find(p => p.id === id);
+                if (p) p.estado = estado;
+            } catch { alert("Error al cambiar estado"); }
+        },
+        badgeEstado(e) {
+            const m = { CREADO: "badge-accent", VALIDADO: "badge-warning", APROBADO: "badge-success", RECHAZADO: "badge-danger", EN_PREPARACION: "badge-warning" };
+            return m[e] || "badge-accent";
+        },
+        formatFecha(f) {
+            if (!f) return "-";
+            return new Date(f).toLocaleDateString("es-CL");
         }
     }
 }

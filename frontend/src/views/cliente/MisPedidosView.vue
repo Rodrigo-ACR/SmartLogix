@@ -9,6 +9,15 @@
                 <div v-for="i in 4" :key="i" class="skeleton-row"></div>
             </div>
 
+            <div v-else-if="error" class="error-banner" style="margin:1.5rem 0">
+                <span class="error-icon">🔴</span>
+                <div>
+                    <strong>{{ error }}</strong>
+                    <p>El sistema se recuperará automáticamente cuando el servicio vuelva a estar disponible.</p>
+                </div>
+                <button class="btn-retry" @click="$router.go(0)">🔄 Reintentar</button>
+            </div>
+
             <div v-else-if="pedidos.length === 0" class="empty-state">
                 <span>📦</span>
                 <h3>Aún no tienes pedidos</h3>
@@ -111,16 +120,20 @@ export default {
         };
     },
     async mounted() {
-        try {
-            const [todos, envios] = await Promise.all([getPedidos(), getEnvios()]);
-            this.pedidos = todos.filter(p =>
+        const [pedidosRes, enviosRes] = await Promise.allSettled([getPedidos(), getEnvios()]);
+
+        if (pedidosRes.status === "fulfilled") {
+            this.pedidos = pedidosRes.value.filter(p =>
                 p.cliente === this.clienteNombre
             ).reverse();
-            this.envios = envios;
-        } catch {
-            this.pedidos = [];
-            this.envios = [];
+        } else {
+            this.error = "⚠️ No se pudieron cargar tus pedidos. Intenta de nuevo en unos momentos.";
         }
+
+        if (enviosRes.status === "fulfilled") {
+            this.envios = enviosRes.value;
+        }
+
         this.loading = false;
     },
     methods: {

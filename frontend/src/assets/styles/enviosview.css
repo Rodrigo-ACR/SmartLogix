@@ -56,3 +56,9 @@
     font-size: 0.85rem;
     cursor: pointer;
 }
+
+@media (max-width: 768px) {
+    .tabla-card { overflow-x: auto; }
+    .tabla { min-width: 600px; }
+    .page-title { font-size: 1.4rem; }
+}

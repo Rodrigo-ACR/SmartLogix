@@ -103,3 +103,20 @@
     padding: 20px 0;
     text-align: center;
 }
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .stat-card { padding: 16px; }
+    .stat-icon { font-size: 1.4rem; }
+}

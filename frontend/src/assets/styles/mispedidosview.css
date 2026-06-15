@@ -412,3 +412,64 @@
     background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-hover) 50%, var(--bg-card) 75%);
     background-size: 200% 100%;
 }
+
+/* Banner error Circuit Breaker */
+.error-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.5rem;
+    animation: fadeInDown 0.4s ease;
+}
+
+.error-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.error-banner strong {
+    color: var(--danger);
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.error-banner p {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.btn-retry {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius);
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-retry:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
