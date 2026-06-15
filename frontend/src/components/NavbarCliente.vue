@@ -7,7 +7,10 @@
 
             <div class="navbar-links">
                 <router-link to="/inicio">Inicio</router-link>
-                <router-link to="/mis-pedidos">Mis Pedidos</router-link>
+                <router-link to="/mis-pedidos" class="link-badge-wrap">
+                    Mis Pedidos
+                    <span v-if="pedidosActivos > 0" class="nav-badge">{{ pedidosActivos }}</span>
+                </router-link>
                 <router-link to="/perfil">Mi Perfil</router-link>
             </div>
 
@@ -30,7 +33,10 @@
 
         <div class="mobile-menu" :class="{ open: menuAbierto }">
             <router-link to="/inicio" @click="menuAbierto = false">🏠 Inicio</router-link>
-            <router-link to="/mis-pedidos" @click="menuAbierto = false">📦 Mis Pedidos</router-link>
+            <router-link to="/mis-pedidos" @click="menuAbierto = false" class="link-badge-wrap">
+                📦 Mis Pedidos
+                <span v-if="pedidosActivos > 0" class="nav-badge">{{ pedidosActivos }}</span>
+            </router-link>
             <router-link to="/perfil" @click="menuAbierto = false">👤 Mi Perfil</router-link>
             <div class="mobile-footer">
                 <div class="mobile-footer-row">
@@ -50,6 +56,7 @@
 
 <script>
 import ThemeToggle from "./ThemeToggle.vue";
+import { getPedidos } from "../services/api";
 import Icons from "./Icons.vue";
 import "@/assets/styles/navbarcliente.css";
 export default {
@@ -57,8 +64,21 @@ export default {
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Cliente",
-            menuAbierto: false
+            correo: localStorage.getItem("correo") || "",
+            menuAbierto: false,
+            pedidosActivos: 0
         };
+    },
+    async mounted() {
+        try {
+            const todos = await getPedidos();
+            const nombre = localStorage.getItem("nombre") || "";
+            const correo = localStorage.getItem("correo") || "";
+            this.pedidosActivos = todos.filter(p =>
+                (p.cliente === nombre || p.cliente === correo) &&
+                !["RECHAZADO", "ENTREGADO"].includes(p.estado)
+            ).length;
+        } catch { this.pedidosActivos = 0; }
     },
     methods: {
         logout() {
