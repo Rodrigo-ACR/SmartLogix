@@ -22,42 +22,13 @@
 
             <!-- Stats cards -->
             <div class="stats-grid">
-                <div class="stat-card card" @click="$router.push('/admin/productos')">
-                    <div class="stat-icon">🛍️</div>
+                <div v-for="(card, i) in statCards" :key="i" class="stat-card card" @click="$router.push(card.ruta)">
+                    <div class="stat-icon">{{ card.icon }}</div>
                     <div class="stat-info">
-                        <span class="stat-label">Productos</span>
-                        <span class="stat-value" :class="{ 'stat-error': errores.productos }">
-                            {{ errores.productos ? '—' : stats.productos }}
-                        </span>
-                    </div>
-                    <Icons name="arrow" :size="20" />
-                </div>
-                <div class="stat-card card" @click="$router.push('/admin/pedidos')">
-                    <div class="stat-icon">📦</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Pedidos</span>
-                        <span class="stat-value" :class="{ 'stat-error': errores.pedidos }">
-                            {{ errores.pedidos ? '—' : stats.pedidos }}
-                        </span>
-                    </div>
-                    <Icons name="arrow" :size="20" />
-                </div>
-                <div class="stat-card card" @click="$router.push('/admin/envios')">
-                    <div class="stat-icon">🚚</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Envíos</span>
-                        <span class="stat-value" :class="{ 'stat-error': errores.envios }">
-                            {{ errores.envios ? '—' : stats.envios }}
-                        </span>
-                    </div>
-                    <Icons name="arrow" :size="20" />
-                </div>
-                <div class="stat-card card" @click="$router.push('/admin/clientes')">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Clientes</span>
-                        <span class="stat-value" :class="{ 'stat-error': errores.clientes }">
-                            {{ errores.clientes ? '—' : stats.clientes }}
+                        <span class="stat-label">{{ card.label }}</span>
+                        <span v-if="cargando" class="stat-skeleton"></span>
+                        <span v-else class="stat-value" :class="{ 'stat-error': card.error }">
+                            {{ card.error ? '—' : card.valor }}
                         </span>
                     </div>
                     <Icons name="arrow" :size="20" />
@@ -146,6 +117,7 @@ export default {
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Admin",
+            cargando: true,
             stats: { productos: 0, pedidos: 0, envios: 0, clientes: 0 },
             errores: { productos: false, pedidos: false, envios: false, clientes: false },
             pedidos: [],
@@ -157,6 +129,14 @@ export default {
         };
     },
     computed: {
+        statCards() {
+            return [
+                { icon: '🛍️', label: 'Productos', valor: this.stats.productos, error: this.errores.productos, ruta: '/admin/productos' },
+                { icon: '📦', label: 'Pedidos', valor: this.stats.pedidos, error: this.errores.pedidos, ruta: '/admin/pedidos' },
+                { icon: '🚚', label: 'Envíos', valor: this.stats.envios, error: this.errores.envios, ruta: '/admin/envios' },
+                { icon: '👥', label: 'Clientes', valor: this.stats.clientes, error: this.errores.clientes, ruta: '/admin/clientes' },
+            ];
+        },
         serviciosCaidos() {
             const nombres = { productos: "Inventario", pedidos: "Pedidos", envios: "Envíos", clientes: "Usuarios" };
             return Object.entries(this.errores).filter(([, v]) => v).map(([k]) => nombres[k]);
@@ -186,6 +166,8 @@ export default {
         if (usuarios.status === "fulfilled") {
             this.stats.clientes = usuarios.value.filter(u => u.rol === "CLIENTE").length;
         } else { this.errores.clientes = true; }
+
+        this.cargando = false;
 
         await this.$nextTick();
         if (this.pedidosStats.length) this.renderChartPedidos();

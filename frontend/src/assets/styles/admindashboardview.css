@@ -108,15 +108,34 @@
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .dash-grid {
         grid-template-columns: 1fr;
     }
 }
+
 @media (max-width: 480px) {
     .stats-grid {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
-    .stat-card { padding: 16px; }
-    .stat-icon { font-size: 1.4rem; }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-icon {
+        font-size: 1.4rem;
+    }
+}
+
+/* Skeleton stat cards */
+.stat-skeleton {
+    display: block;
+    width: 60px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-hover) 50%, var(--bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
 }

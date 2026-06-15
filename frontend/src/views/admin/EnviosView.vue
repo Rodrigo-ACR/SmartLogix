@@ -46,7 +46,7 @@
                         <tr v-if="!loading && enviosActivos.length === 0">
                             <td colspan="7" class="text-center text-muted">No hay envíos en curso</td>
                         </tr>
-                        <tr v-for="e in enviosActivos" :key="e.id">
+                        <tr v-for="e in activosPaginados" :key="e.id">
                             <td class="text-muted">#{{ e.id }}</td>
                             <td>#{{ e.pedidoId }}</td>
                             <td>{{ e.direccion }}</td>
@@ -66,6 +66,17 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div v-if="totalPaginasActivos > 1" class="paginacion">
+                <button class="pag-btn" :disabled="paginaActivos === 1" @click="paginaActivos--">
+                    <Icons name="arrow-left" :size="18" color="currentColor" />
+                </button>
+                <button v-for="n in totalPaginasActivos" :key="n" class="pag-num"
+                    :class="{ active: paginaActivos === n }" @click="paginaActivos = n">{{ n }}</button>
+                <button class="pag-btn" :disabled="paginaActivos === totalPaginasActivos" @click="paginaActivos++">
+                    <Icons name="arrow-right" :size="18" color="currentColor" />
+                </button>
             </div>
 
             <!-- TABLA 2: Envíos entregados -->
@@ -90,7 +101,7 @@
                         <tr v-if="!loading && enviosEntregados.length === 0">
                             <td colspan="6" class="text-center text-muted">Aún no hay envíos entregados</td>
                         </tr>
-                        <tr v-for="e in enviosEntregados" :key="e.id" class="fila-entregada">
+                        <tr v-for="e in entregadosPaginados" :key="e.id" class="fila-entregada">
                             <td class="text-muted">#{{ e.id }}</td>
                             <td>#{{ e.pedidoId }}</td>
                             <td>{{ e.direccion }}</td>
@@ -101,6 +112,17 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div v-if="totalPaginasEntregados > 1" class="paginacion" style="margin-top:1rem">
+            <button class="pag-btn" :disabled="paginaEntregados === 1" @click="paginaEntregados--">
+                <Icons name="arrow-left" :size="18" color="currentColor" />
+            </button>
+            <button v-for="n in totalPaginasEntregados" :key="n" class="pag-num"
+                :class="{ active: paginaEntregados === n }" @click="paginaEntregados = n">{{ n }}</button>
+            <button class="pag-btn" :disabled="paginaEntregados === totalPaginasEntregados" @click="paginaEntregados++">
+                <Icons name="arrow-right" :size="18" color="currentColor" />
+            </button>
         </div>
 
         <!-- MODAL CREAR ENVÍO -->
@@ -166,11 +188,12 @@
 
 <script>
 import NavbarAdmin from "../../components/NavbarAdmin.vue";
+import Icons from "../../components/Icons.vue";
 import { getEnvios, cambiarEstadoEnvio, crearEnvio, getPedidos, getUsuarios } from "../../services/api";
 import "@/assets/styles/enviosview.css";
 
 export default {
-    components: { NavbarAdmin },
+    components: { NavbarAdmin, Icons },
     data() {
         return {
             envios: [],
@@ -180,6 +203,9 @@ export default {
             usuarios: [],
             creando: false,
             errorCarga: "",
+            paginaActivos: 1,
+            paginaEntregados: 1,
+            porPagina: 6,
             errorModal: "",
             transportistaSeleccionado: "",
             nuevoEnvio: {
@@ -196,6 +222,20 @@ export default {
         },
         enviosEntregados() {
             return this.envios.filter(e => e.estado === "ENTREGADO");
+        },
+        activosPaginados() {
+            const i = (this.paginaActivos - 1) * this.porPagina;
+            return this.enviosActivos.slice(i, i + this.porPagina);
+        },
+        totalPaginasActivos() {
+            return Math.ceil(this.enviosActivos.length / this.porPagina);
+        },
+        entregadosPaginados() {
+            const i = (this.paginaEntregados - 1) * this.porPagina;
+            return this.enviosEntregados.slice(i, i + this.porPagina);
+        },
+        totalPaginasEntregados() {
+            return Math.ceil(this.enviosEntregados.length / this.porPagina);
         }
     },
     async mounted() {
