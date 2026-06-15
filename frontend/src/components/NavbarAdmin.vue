@@ -15,13 +15,16 @@
             </div>
 
             <div class="navbar-user">
+                <span class="toggle-desktop">
+                    <ThemeToggle />
+                </span>
                 <span class="user-name">{{ nombre }}</span>
-                <button class="btn btn-outline btn-sm" @click="logout">Salir</button>
+                <button class="btn-logout" @click="logout" title="Cerrar sesión">
+                    <Icons name="logout" :size="20" color="currentColor" />
+                </button>
             </div>
 
             <!-- Botón hamburguesa (solo móvil) -->
-            <ThemeToggle />
-
             <button class="hamburger" @click="menuAbierto = !menuAbierto" :class="{ open: menuAbierto }">
                 <span></span>
                 <span></span>
@@ -37,8 +40,16 @@
             <router-link to="/admin/envios" @click="menuAbierto = false">🚚 Envíos</router-link>
             <router-link to="/admin/clientes" @click="menuAbierto = false">👥 Clientes</router-link>
             <div class="mobile-footer">
-                <span class="user-name">{{ nombre }}</span>
-                <button class="btn btn-outline btn-sm" @click="logout">Salir</button>
+                <div class="mobile-footer-row">
+                    <ThemeToggle />
+                    <span style="font-size:0.82rem;color:var(--text-muted)">Tema</span>
+                </div>
+                <div class="mobile-footer-row">
+                    <span class="user-name">{{ nombre }}</span>
+                    <button class="btn-logout" @click="logout" title="Cerrar sesión">
+                        <Icons name="logout" :size="18" color="currentColor" />
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -46,9 +57,10 @@
 
 <script>
 import ThemeToggle from "./ThemeToggle.vue";
+import Icons from "./Icons.vue";
 import "@/assets/styles/navbaradmin.css";
 export default {
-    components: { ThemeToggle },
+    components: { ThemeToggle, Icons },
     data() {
         return {
             nombre: localStorage.getItem("nombre") || "Admin",

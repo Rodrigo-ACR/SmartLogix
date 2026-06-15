@@ -14,8 +14,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
-    gap: 32px;
+    height: 60px;
+    gap: 16px;
 }
 
 .navbar-brand {
@@ -198,4 +198,48 @@
 .theme-toggle:hover {
     border-color: var(--accent);
     background: var(--bg-hover);
+}
+
+.btn-logout {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    opacity: 0.7;
+}
+
+.btn-logout:hover {
+    opacity: 1;
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.mobile-footer {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Toggle solo visible en desktop */
+.toggle-desktop {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .toggle-desktop {
+        display: none;
+    }
 }

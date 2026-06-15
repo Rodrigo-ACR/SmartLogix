@@ -49,7 +49,7 @@ export default {
 
 <style scoped>
 .theme-switch {
-    --toggle-size: 18px;
+    --toggle-size: 12px;
     --container-width: 5.625em;
     --container-height: 2.5em;
     --container-radius: 6.25em;

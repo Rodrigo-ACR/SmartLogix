@@ -53,13 +53,13 @@ export default {
 }
 
 .splash-bolt {
-    font-size: 3rem;
+    font-size: clamp(1.8rem, 4vw, 3rem);
     animation: boltSpin 0.6s ease 0.2s both;
 }
 
 .splash-nombre {
     font-family: 'Syne', sans-serif;
-    font-size: 2.8rem;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
     font-weight: 700;
     color: #f0f0f8;
     letter-spacing: -0.02em;
@@ -72,7 +72,7 @@ export default {
 }
 
 .splash-bar {
-    width: 200px;
+    width: clamp(120px, 40vw, 200px);
     height: 3px;
     background: #1e1e2a;
     border-radius: 99px;
