@@ -143,6 +143,7 @@ export default {
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("rol", data.rol);
                     localStorage.setItem("nombre", data.nombre);
+                    localStorage.setItem("correo", this.correo);
                     localStorage.setItem("id", data.id);
                     if (data.direccion) {
                         localStorage.setItem("direcciones", JSON.stringify([data.direccion]));
@@ -187,7 +188,8 @@ export default {
                 if (data.id) {
                     this.modo = "login";
                     this.error = "";
-                    alert("Cuenta creada. Inicia sesión.");
+                    window.$toast.mostrar("¡Cuenta creada exitosamente! Inicia sesión.", "success", 4000);
+                    this.modo = "login";
                 } else {
                     this.error = data.mensaje || "Error al registrarse";
                 }

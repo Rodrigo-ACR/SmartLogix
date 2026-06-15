@@ -123,7 +123,8 @@ export default {
             envios: [],
             loading: true,
             todosLosEstados: TODOS_ESTADOS,
-            clienteNombre: localStorage.getItem("nombre") || ""
+            clienteNombre: localStorage.getItem("nombre") || "",
+            clienteCorreo: localStorage.getItem("correo") || ""
         };
     },
     async mounted() {
@@ -131,7 +132,7 @@ export default {
 
         if (pedidosRes.status === "fulfilled") {
             this.pedidos = pedidosRes.value.filter(p =>
-                p.cliente === this.clienteNombre
+                p.cliente === this.clienteNombre || p.cliente === this.clienteCorreo
             ).reverse();
         } else {
             this.error = "⚠️ No se pudieron cargar tus pedidos. Intenta de nuevo en unos momentos.";

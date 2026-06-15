@@ -242,7 +242,7 @@ export default {
                 window.$toast.mostrar("¡Pedido realizado con éxito! 🎉", "success", 4000);
                 this.$router.push("/mis-pedidos");
             } catch {
-                alert("Error al crear el pedido");
+                window.$toast.mostrar("Error al crear el pedido. Intenta de nuevo.", "error");
             }
             this.procesando = false;
         },
