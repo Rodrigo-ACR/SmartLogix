@@ -28,70 +28,84 @@
             </div>
 
             <div v-else class="pedidos-lista">
-                <div v-for="p in pedidos" :key="p.id" class="pedido-card card">
-                    <div class="pedido-header">
-                        <div>
-                            <span class="pedido-id">#{{ p.id }}</span>
-                            <h3>{{ p.nombreProducto || 'Producto' }}</h3>
-                        </div>
-                        <span :class="badgeEstado(estadoFinal(p))" class="badge">
-                            {{ estadoFinal(p) }}
-                        </span>
-                    </div>
-
-                    <div class="pedido-detalles">
-                        <div class="detalle-item">
-                            <span>Cantidad</span>
-                            <strong>{{ p.cantidad }}</strong>
-                        </div>
-                        <div class="detalle-item">
-                            <span>Fecha</span>
-                            <strong>{{ formatFecha(p.fecha) }}</strong>
-                        </div>
-                        <div class="detalle-item" v-if="envioDeP(p.id)">
-                            <span>Transportista</span>
-                            <strong>{{ envioDeP(p.id).transportista || '-' }}</strong>
-                        </div>
-                        <div class="detalle-item" v-if="envioDeP(p.id)">
-                            <span>Entrega estimada</span>
-                            <strong>{{ formatFecha(envioDeP(p.id).fechaEstimada) }}</strong>
-                        </div>
-                        <div class="detalle-item" v-if="envioDeP(p.id)">
-                            <span>Dirección</span>
-                            <strong>{{ envioDeP(p.id).direccion }}</strong>
-                        </div>
-                    </div>
-
-                    <!-- Botón cancelar (solo CREADO) -->
-                    <div v-if="p.estado === 'CREADO' && !envioDeP(p.id)" style="margin-bottom:1rem">
-                        <button class="btn-cancelar-pedido" @click="cancelarPedido(p)">
-                            ✕ Cancelar pedido
-                        </button>
-                    </div>
-
-                    <!-- PROGRESS BAR COMPLETO -->
-                    <div class="pedido-progress">
-                        <div v-for="(est, i) in todosLosEstados" :key="i" class="progress-step" :class="{
-                            active: estadoFinal(p) === est.key,
-                            done: esAnterior(estadoFinal(p), est.key),
-                            disabled: !tieneEnvio(p) && est.tipo === 'envio',
-                            'envio-step': est.tipo === 'envio',
-                            'entregado-step': est.key === 'ENTREGADO'
-                        }">
-                            <div class="step-dot">
-                                <span
-                                    v-if="est.key === 'ENTREGADO' && (estadoFinal(p) === 'ENTREGADO' || esAnterior(estadoFinal(p), 'ENTREGADO'))"
-                                    class="corona-emoji">👑</span>
+                <template v-for="(grupo, gi) in pedidosAgrupados" :key="gi">
+                    <div class="pedido-card card" v-if="grupo && grupo.items && grupo.items[0]">
+                        <div class="pedido-header">
+                            <div>
+                                <span class="pedido-id">Compra del {{ formatFecha(grupo.fecha) }}</span>
+                                <h3 v-if="grupo.items.length === 1">{{ grupo.items[0].nombreProducto || 'Producto' }}
+                                </h3>
+                                <h3 v-else>{{ grupo.items.length }} productos</h3>
                             </div>
-                            <span>{{ est.label }}</span>
+                            <span :class="badgeEstado(estadoFinal(grupo.items[0]))" class="badge">
+                                {{ estadoFinal(grupo.items[0]) }}
+                            </span>
+                        </div>
+
+                        <!-- Lista de productos del grupo -->
+                        <div v-if="grupo.items.length > 1" class="grupo-productos">
+                            <div v-for="p in grupo.items" :key="p.id" class="grupo-producto-item">
+                                <span class="grupo-prod-nombre">{{ p.nombreProducto }}</span>
+                                <span class="grupo-prod-qty">x{{ p.cantidad }}</span>
+                                <span class="grupo-prod-id text-muted">#{{ p.id }}</span>
+                            </div>
+                        </div>
+
+                        <div class="pedido-detalles">
+                            <div class="detalle-item">
+                                <span>Cantidad total</span>
+                                <strong>{{grupo.items.reduce((s, p) => s + p.cantidad, 0)}}</strong>
+                            </div>
+                            <div class="detalle-item">
+                                <span>Fecha</span>
+                                <strong>{{ formatFecha(grupo.fecha) }}</strong>
+                            </div>
+                            <div class="detalle-item" v-if="envioDeP(grupo.items[0].id)">
+                                <span>Transportista</span>
+                                <strong>{{ envioDeP(grupo.items[0].id).transportista || '-' }}</strong>
+                            </div>
+                            <div class="detalle-item" v-if="envioDeP(grupo.items[0].id)">
+                                <span>Entrega estimada</span>
+                                <strong>{{ formatFecha(envioDeP(grupo.items[0].id).fechaEstimada) }}</strong>
+                            </div>
+                            <div class="detalle-item" v-if="envioDeP(grupo.items[0].id)">
+                                <span>Dirección</span>
+                                <strong>{{ envioDeP(grupo.items[0].id).direccion }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Botón cancelar (solo CREADO) -->
+                        <div v-if="grupo.items[0].estado === 'CREADO' && !envioDeP(grupo.items[0].id)"
+                            style="margin-bottom:1rem">
+                            <button class="btn-cancelar-pedido" @click="cancelarPedido(grupo.items[0])">
+                                ✕ Cancelar pedido
+                            </button>
+                        </div>
+
+                        <!-- PROGRESS BAR COMPLETO -->
+                        <div class="pedido-progress">
+                            <div v-for="(est, i) in todosLosEstados" :key="i" class="progress-step" :class="{
+                                active: estadoFinal(grupo.items[0]) === est.key,
+                                done: esAnterior(estadoFinal(grupo.items[0]), est.key),
+                                disabled: !tieneEnvio(grupo.items[0]) && est.tipo === 'envio',
+                                'envio-step': est.tipo === 'envio',
+                                'entregado-step': est.key === 'ENTREGADO'
+                            }">
+                                <div class="step-dot">
+                                    <span
+                                        v-if="est.key === 'ENTREGADO' && (estadoFinal(grupo.items[0]) === 'ENTREGADO' || esAnterior(estadoFinal(grupo.items[0]), 'ENTREGADO'))"
+                                        class="corona-emoji">👑</span>
+                                </div>
+                                <span>{{ est.label }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Banner celebración ENTREGADO -->
+                        <div v-if="estadoFinal(grupo.items[0]) === 'ENTREGADO'" class="entregado-banner">
+                            🎉 ¡Tu pedido fue entregado exitosamente! 👑
                         </div>
                     </div>
-
-                    <!-- Banner celebración ENTREGADO -->
-                    <div v-if="estadoFinal(p) === 'ENTREGADO'" class="entregado-banner">
-                        🎉 ¡Tu pedido fue entregado exitosamente! 👑
-                    </div>
-                </div>
+                </template>
             </div>
         </div>
     </div>
@@ -122,10 +136,29 @@ export default {
             pedidos: [],
             envios: [],
             loading: true,
+            error: "",
             todosLosEstados: TODOS_ESTADOS,
             clienteNombre: localStorage.getItem("nombre") || "",
             clienteCorreo: localStorage.getItem("correo") || ""
         };
+    },
+    computed: {
+        pedidosAgrupados() {
+            const grupos = {};
+            this.pedidos.forEach(p => {
+                const key = p.grupoId || ("solo_" + p.id);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(p);
+            });
+            return Object.entries(grupos)
+                .sort((a, b) => {
+                    const fa = b[1][0]?.fecha || "";
+                    const fb = a[1][0]?.fecha || "";
+                    return fa.localeCompare(fb);
+                })
+                .map(([key, items]) => ({ fecha: items[0]?.fecha, items }))
+                .filter(g => g.items && g.items.length > 0);
+        }
     },
     async mounted() {
         const [pedidosRes, enviosRes] = await Promise.allSettled([getPedidos(), getEnvios()]);
@@ -152,6 +185,7 @@ export default {
             return !!this.envioDeP(p.id);
         },
         estadoFinal(p) {
+            if (!p || !p.id) return "CREADO";
             const envio = this.envioDeP(p.id);
             if (envio) return envio.estado;
             return p.estado;

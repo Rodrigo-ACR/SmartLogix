@@ -38,13 +38,20 @@ public class UsuarioService {
         Usuario existente = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        existente.setNombre(usuario.getNombre());
-        existente.setCorreo(usuario.getCorreo());
-        existente.setPassword(usuario.getPassword());
-        existente.setRol(usuario.getRol());
-        existente.setTelefono(usuario.getTelefono());
-        existente.setDireccion(usuario.getDireccion());
-        existente.setActivo(usuario.getActivo());
+        if (usuario.getNombre() != null)
+            existente.setNombre(usuario.getNombre());
+        if (usuario.getCorreo() != null)
+            existente.setCorreo(usuario.getCorreo());
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty())
+            existente.setPassword(usuario.getPassword());
+        if (usuario.getRol() != null)
+            existente.setRol(usuario.getRol());
+        if (usuario.getTelefono() != null)
+            existente.setTelefono(usuario.getTelefono());
+        if (usuario.getDireccion() != null)
+            existente.setDireccion(usuario.getDireccion());
+        if (usuario.getActivo() != null)
+            existente.setActivo(usuario.getActivo());
 
         return repository.save(existente);
     }

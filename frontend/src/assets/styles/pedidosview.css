@@ -58,7 +58,38 @@
 }
 
 @media (max-width: 768px) {
-    .tabla-card { overflow-x: auto; }
-    .tabla { min-width: 600px; }
-    .page-title { font-size: 1.4rem; }
+    .tabla-card {
+        overflow-x: auto;
+    }
+
+    .tabla {
+        min-width: 600px;
+    }
+
+    .page-title {
+        font-size: 1.4rem;
+    }
+}
+
+/* Productos agrupados en tabla admin */
+.grupo-prod-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 0.88rem;
+}
+
+.texto-prod {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.badge-qty {
+    background: var(--accent-glow);
+    color: var(--accent);
+    padding: 1px 7px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }

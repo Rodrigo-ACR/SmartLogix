@@ -5,7 +5,7 @@
         <!-- CARRUSEL CATEGORÍAS -->
         <section class="carousel-section">
             <div class="carousel-track">
-                <div v-for="(cat, i) in categorias" :key="i" class="carousel-card" :style="{ background: cat.color }">
+                <div v-for="(cat, i) in categorias" :key="i" class="carousel-card" :class="'cat-' + cat.key">
                     <span class="cat-emoji">{{ cat.emoji }}</span>
                     <span class="cat-nombre">{{ cat.nombre }}</span>
                 </div>
@@ -90,41 +90,100 @@
         </section>
 
         <!-- CARRITO FLOTANTE -->
-        <div v-if="carrito.length > 0" class="carrito-fab" @click="mostrarCarrito = true">
+        <div v-if="carrito.length > 0" class="carrito-fab" @click="mostrarCarrito = true; pasoCheckout = 1">
             🛒 <span class="carrito-count">{{ totalItems }}</span>
             <span class="carrito-total">${{ formatPrecio(totalPrecio) }}</span>
         </div>
 
         <!-- MODAL CARRITO -->
+        <!-- MODAL CARRITO / CHECKOUT -->
         <div v-if="mostrarCarrito" class="modal-overlay" @click.self="mostrarCarrito = false">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3>Tu carrito</h3>
-                    <button @click="mostrarCarrito = false" class="btn-close">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div v-for="item in carrito" :key="item.id" class="carrito-item">
-                        <div class="carrito-item-info">
-                            <span class="carrito-item-nombre">{{ item.nombre }}</span>
-                            <span class="carrito-item-precio">${{ formatPrecio(item.precio) }}</span>
-                        </div>
-                        <div class="carrito-item-actions">
-                            <button @click="decrementar(item)" class="qty-btn">−</button>
-                            <span>{{ item.qty }}</span>
-                            <button @click="incrementar(item)" class="qty-btn">+</button>
-                            <button @click="quitarCarrito(item)" class="btn-remove">🗑</button>
+            <div class="modal checkout-modal">
+
+                <!-- PASO 1: Carrito -->
+                <div v-if="pasoCheckout === 1">
+                    <div class="modal-header">
+                        <h3>🛒 Tu carrito</h3>
+                        <button @click="mostrarCarrito = false" class="btn-close">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-for="item in carrito" :key="item.id" class="carrito-item">
+                            <div class="carrito-item-info">
+                                <span class="carrito-item-nombre">{{ item.nombre }}</span>
+                                <span class="carrito-item-precio">${{ formatPrecio(item.precio * item.qty) }}</span>
+                            </div>
+                            <div class="carrito-item-actions">
+                                <button @click="decrementar(item)" class="qty-btn">−</button>
+                                <span class="qty-num">{{ item.qty }}</span>
+                                <button @click="incrementar(item)" class="qty-btn">+</button>
+                                <button @click="quitarCarrito(item)" class="btn-remove">🗑</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="carrito-resumen">
-                        <span>Total</span>
-                        <span class="total-grande">${{ formatPrecio(totalPrecio) }}</span>
+                    <div class="modal-footer">
+                        <div class="carrito-resumen">
+                            <span>{{ totalItems }} producto{{ totalItems !== 1 ? 's' : '' }}</span>
+                            <span class="total-grande">${{ formatPrecio(totalPrecio) }}</span>
+                        </div>
+                        <button class="btn btn-primary w-full" @click="pasoCheckout = 2"
+                            style="display:flex;align-items:center;justify-content:center;gap:8px">
+                            Continuar con la compra
+                            <Icons name="arrow-right" :size="18" color="white" />
+                        </button>
                     </div>
-                    <button class="btn btn-primary w-full" @click="confirmarPedido" :disabled="procesando">
-                        {{ procesando ? 'Procesando...' : 'Confirmar pedido' }}
-                    </button>
                 </div>
+
+                <!-- PASO 2: Confirmación con dirección -->
+                <div v-if="pasoCheckout === 2">
+                    <div class="modal-header">
+                        <button @click="pasoCheckout = 1" class="btn-back"
+                            style="display:flex;align-items:center;gap:4px">
+                            <Icons name="arrow-left" :size="16" color="currentColor" /> Volver
+                        </button>
+                        <h3>📋 Confirmar pedido</h3>
+                        <button @click="mostrarCarrito = false" class="btn-close">✕</button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- Resumen de productos -->
+                        <div class="checkout-seccion">
+                            <h4 class="checkout-label">Productos</h4>
+                            <div v-for="item in carrito" :key="item.id" class="checkout-item">
+                                <span class="checkout-item-nombre">{{ item.nombre }}</span>
+                                <span class="checkout-item-det">x{{ item.qty }}</span>
+                                <span class="checkout-item-precio">${{ formatPrecio(item.precio * item.qty) }}</span>
+                            </div>
+                            <div class="checkout-total">
+                                <span>Total</span>
+                                <span>${{ formatPrecio(totalPrecio) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Dirección de entrega -->
+                        <div class="checkout-seccion">
+                            <h4 class="checkout-label">Dirección de entrega</h4>
+                            <div v-if="direcciones.length > 0" class="dir-opciones">
+                                <label v-for="(d, i) in direcciones" :key="i" class="dir-opcion"
+                                    :class="{ selected: direccionSeleccionada === d }">
+                                    <input type="radio" v-model="direccionSeleccionada" :value="d" />
+                                    <span>📍 {{ d }}</span>
+                                </label>
+                            </div>
+                            <div class="nueva-dir-checkout">
+                                <input v-model="nuevaDirCheckout" type="text" class="checkout-input"
+                                    :placeholder="direcciones.length > 0 ? 'O ingresa una nueva dirección' : 'Ej: Av. Principal 123, Santiago'" />
+                            </div>
+                            <p v-if="errorDir" class="checkout-error">{{ errorDir }}</p>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary w-full" @click="confirmarPedido" :disabled="procesando">
+                            {{ procesando ? 'Procesando...' : '✅ Confirmar compra' }}
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -133,22 +192,23 @@
 
 <script>
 import NavbarCliente from "../../components/NavbarCliente.vue";
+import Icons from "../../components/Icons.vue";
 import { getProductos, crearPedido } from "../../services/api";
 import "@/assets/styles/inicioview.css";
 
 const CATEGORIAS = [
-    { nombre: "Electrónica", emoji: "💻", color: "linear-gradient(135deg,#0a1a2e,#00001a)" },
-    { nombre: "Ropa", emoji: "👕", color: "linear-gradient(135deg,#2e1a2e,#1a0a1a)" },
-    { nombre: "Alimentos", emoji: "🍯", color: "linear-gradient(135deg,#2e2a0a,#1a1500)" },
-    { nombre: "Hogar", emoji: "🏠", color: "linear-gradient(135deg,#1a2e1a,#0a1a0a)" },
-    { nombre: "Deportes", emoji: "⚽", color: "linear-gradient(135deg,#2e1a0a,#1a0a00)" },
-    { nombre: "Belleza", emoji: "💄", color: "linear-gradient(135deg,#2e0a1a,#1a000a)" },
-    { nombre: "Juguetes", emoji: "🧸", color: "linear-gradient(135deg,#2e2e0a,#1a1a00)" },
-    { nombre: "Mascotas", emoji: "🐾", color: "linear-gradient(135deg,#0a2e2e,#001a1a)" },
+    { nombre: "Electrónica", emoji: "💻", key: "electronica" },
+    { nombre: "Ropa", emoji: "👕", key: "ropa" },
+    { nombre: "Alimentos", emoji: "🍯", key: "alimentos" },
+    { nombre: "Hogar", emoji: "🏠", key: "hogar" },
+    { nombre: "Deportes", emoji: "⚽", key: "deportes" },
+    { nombre: "Belleza", emoji: "💄", key: "belleza" },
+    { nombre: "Juguetes", emoji: "🧸", key: "juguetes" },
+    { nombre: "Mascotas", emoji: "🐾", key: "mascotas" },
 ];
 
 export default {
-    components: { NavbarCliente },
+    components: { NavbarCliente, Icons },
 
     data() {
         return {
@@ -157,7 +217,13 @@ export default {
             loading: true,
             error: "",
             carrito: [],
+            pasoCheckout: 1,
+            direcciones: [],
+            direccionSeleccionada: "",
+            nuevaDirCheckout: "",
+            errorDir: "",
             mostrarCarrito: false,
+            procesando: false,
             procesando: false,
             nombre: localStorage.getItem("nombre") || "Cliente",
             categorias: [],
@@ -184,6 +250,16 @@ export default {
     mounted() {
         this.cargarProductos();
         this.categorias = [...CATEGORIAS, ...CATEGORIAS];
+        // Cargar direcciones guardadas del perfil
+        const dirs = localStorage.getItem("direcciones");
+        if (dirs) {
+            try {
+                this.direcciones = JSON.parse(dirs);
+                if (this.direcciones.length > 0) {
+                    this.direccionSeleccionada = this.direcciones[0];
+                }
+            } catch { this.direcciones = []; }
+        }
     },
 
     methods: {
@@ -226,19 +302,38 @@ export default {
         },
 
         async confirmarPedido() {
+            // Validar dirección
+            const dir = this.nuevaDirCheckout.trim() || this.direccionSeleccionada;
+            if (!dir) {
+                this.errorDir = "Debes ingresar o seleccionar una dirección de entrega";
+                return;
+            }
+            this.errorDir = "";
             this.procesando = true;
-            const clienteNombre = localStorage.getItem("nombre") || "Cliente";
+
+            // Guardar nueva dirección si la ingresó
+            if (this.nuevaDirCheckout.trim() && !this.direcciones.includes(this.nuevaDirCheckout.trim())) {
+                this.direcciones.push(this.nuevaDirCheckout.trim());
+                localStorage.setItem("direcciones", JSON.stringify(this.direcciones));
+            }
+
+            const clienteNombre = localStorage.getItem("correo") || localStorage.getItem("nombre") || "Cliente";
+            const grupoId = Date.now().toString(); // ID único por sesión de compra
             try {
                 for (const item of this.carrito) {
                     await crearPedido({
                         cliente: clienteNombre,
                         productoId: item.id,
                         nombreProducto: item.nombre,
-                        cantidad: item.qty
+                        cantidad: item.qty,
+                        direccion: dir,
+                        grupoId: grupoId
                     });
                 }
                 this.carrito = [];
                 this.mostrarCarrito = false;
+                this.pasoCheckout = 1;
+                this.nuevaDirCheckout = "";
                 window.$toast.mostrar("¡Pedido realizado con éxito! 🎉", "success", 4000);
                 this.$router.push("/mis-pedidos");
             } catch {

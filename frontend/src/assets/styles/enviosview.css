@@ -58,7 +58,42 @@
 }
 
 @media (max-width: 768px) {
-    .tabla-card { overflow-x: auto; }
-    .tabla { min-width: 600px; }
-    .page-title { font-size: 1.4rem; }
+    .tabla-card {
+        overflow-x: auto;
+    }
+
+    .tabla {
+        min-width: 600px;
+    }
+
+    .page-title {
+        font-size: 1.4rem;
+    }
+}
+
+/* Dirección solo lectura en modal */
+.dir-readonly {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.dir-icon-sm {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.grupo-orden-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }

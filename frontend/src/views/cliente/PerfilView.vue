@@ -21,8 +21,7 @@
                 <div class="card perfil-seccion">
                     <div class="seccion-header">
                         <h3>📋 Información personal</h3>
-                        <button v-if="!editando" class="btn btn-outline btn-sm" @click="editando = true">✏️
-                            Editar</button>
+                        <button v-if="!editando" class="btn btn-outline btn-sm" @click="abrirEdicion">✏️ Editar</button>
                         <button v-else class="btn btn-outline btn-sm" @click="cancelarEdicion">Cancelar</button>
                     </div>
 
@@ -140,7 +139,10 @@ export default {
         return {
             nombre: localStorage.getItem("nombre") || "Cliente",
             correo: localStorage.getItem("correo") || "",
-            telefono: localStorage.getItem("telefono") || "",
+            telefono: (() => {
+                const t = localStorage.getItem("telefono") || "";
+                return t.includes("@") ? "" : t;
+            })(),
             rol: localStorage.getItem("rol") || "CLIENTE",
             id: localStorage.getItem("id") || "-",
             direcciones: [],
@@ -157,10 +159,24 @@ export default {
         }
     },
     mounted() {
+        // Limpiar teléfono si tiene el correo guardado por error
+        const telGuardado = localStorage.getItem("telefono") || "";
+        if (telGuardado.includes("@")) {
+            localStorage.removeItem("telefono");
+            this.telefono = "";
+        }
         const dirs = localStorage.getItem("direcciones");
         if (dirs) this.direcciones = JSON.parse(dirs);
     },
     methods: {
+        abrirEdicion() {
+            this.form.nombre = this.nombre;
+            // Si el teléfono guardado es un email, dejarlo vacío
+            const tel = this.telefono || "";
+            this.form.telefono = tel.includes("@") ? "" : tel;
+            this.form.password = "";
+            this.editando = true;
+        },
         cancelarEdicion() {
             this.editando = false;
             this.form = { nombre: "", telefono: "", password: "" };
@@ -176,6 +192,7 @@ export default {
                     nombre: this.form.nombre.trim() || this.nombre,
                     telefono: this.form.telefono.trim() || this.telefono,
                     correo: this.correo,
+                    direccion: JSON.stringify(this.direcciones)
                 };
                 if (this.form.password.trim()) payload.password = this.form.password.trim();
 
@@ -203,9 +220,10 @@ export default {
             try {
                 this.direcciones.push(this.nuevaDireccion.trim());
                 localStorage.setItem("direcciones", JSON.stringify(this.direcciones));
+                // Guardar el array completo como JSON en el campo direccion del backend
                 await actualizarUsuario(this.id, {
                     nombre: this.nombre,
-                    direccion: this.direcciones[this.direcciones.length - 1]
+                    direccion: JSON.stringify(this.direcciones)
                 });
                 this.nuevaDireccion = "";
                 this.agregando = false;
@@ -215,9 +233,15 @@ export default {
             }
             this.guardando = false;
         },
-        eliminarDireccion(i) {
+        async eliminarDireccion(i) {
             this.direcciones.splice(i, 1);
             localStorage.setItem("direcciones", JSON.stringify(this.direcciones));
+            try {
+                await actualizarUsuario(this.id, {
+                    nombre: this.nombre,
+                    direccion: JSON.stringify(this.direcciones)
+                });
+            } catch { }
             window.$toast.mostrar("Dirección eliminada", "info");
         },
         logout() {

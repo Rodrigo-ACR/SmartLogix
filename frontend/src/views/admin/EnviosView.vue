@@ -20,14 +20,13 @@
             <div class="seccion-titulo">
                 <span class="dot-activo"></span>
                 Envíos en curso
-                <span class="badge-count">{{ enviosActivos.length }}</span>
+                <span class="badge-count">{{ activosAgrupados.length }}</span>
             </div>
             <div class="tabla-card card">
                 <table class="tabla">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Pedido</th>
+                            <th>Pedidos</th>
                             <th>Dirección</th>
                             <th>Transportista</th>
                             <th>Fecha estimada</th>
@@ -43,19 +42,25 @@
                                 </td>
                             </tr>
                         </template>
-                        <tr v-if="!loading && enviosActivos.length === 0">
-                            <td colspan="7" class="text-center text-muted">No hay envíos en curso</td>
+                        <tr v-if="!loading && activosAgrupados.length === 0">
+                            <td colspan="6" class="text-center text-muted">No hay envíos en curso</td>
                         </tr>
-                        <tr v-for="e in activosPaginados" :key="e.id">
-                            <td class="text-muted">#{{ e.id }}</td>
-                            <td>#{{ e.pedidoId }}</td>
-                            <td>{{ e.direccion }}</td>
-                            <td>{{ e.transportista || '-' }}</td>
-                            <td>{{ formatFecha(e.fechaEstimada) }}</td>
-                            <td><span :class="badgeEnvio(e.estado)" class="badge">{{ e.estado }}</span></td>
+                        <tr v-for="(g, gi) in activosPaginados" :key="g.key">
                             <td>
-                                <select class="estado-select" :value="e.estado"
-                                    @change="cambiarEstado(e.id, $event.target.value)">
+                                <div class="grupo-orden-label">Pedido #{{ gi + 1 }}</div>
+                                <div v-for="e in g.items" :key="e.id" class="grupo-prod-row">
+                                    <span class="badge-qty">x{{ getPedido(e.pedidoId)?.cantidad || 1 }}</span>
+                                    <span class="texto-prod">{{ getPedido(e.pedidoId)?.nombreProducto || "Producto #" +
+                                        e.pedidoId }}</span>
+                                </div>
+                            </td>
+                            <td>{{ g.direccion }}</td>
+                            <td>{{ g.transportista || '-' }}</td>
+                            <td>{{ formatFecha(g.fechaEstimada) }}</td>
+                            <td><span :class="badgeEnvio(g.estado)" class="badge">{{ g.estado }}</span></td>
+                            <td>
+                                <select class="estado-select" :value="g.estado"
+                                    @change="cambiarEstadoGrupo(g, $event.target.value)">
                                     <option value="PENDIENTE">PENDIENTE</option>
                                     <option value="ASIGNADO">ASIGNADO</option>
                                     <option value="EN_TRANSITO">EN_TRANSITO</option>
@@ -83,7 +88,7 @@
             <div class="seccion-titulo" style="margin-top:2rem">
                 <span class="dot-entregado">👑</span>
                 Envíos entregados
-                <span class="badge-count badge-count-gold">{{ enviosEntregados.length }}</span>
+                <span class="badge-count badge-count-gold">{{ entregadosAgrupados.length }}</span>
             </div>
             <div class="tabla-card card">
                 <table class="tabla">
@@ -101,12 +106,19 @@
                         <tr v-if="!loading && enviosEntregados.length === 0">
                             <td colspan="6" class="text-center text-muted">Aún no hay envíos entregados</td>
                         </tr>
-                        <tr v-for="e in entregadosPaginados" :key="e.id" class="fila-entregada">
-                            <td class="text-muted">#{{ e.id }}</td>
-                            <td>#{{ e.pedidoId }}</td>
-                            <td>{{ e.direccion }}</td>
-                            <td>{{ e.transportista || '-' }}</td>
-                            <td>{{ formatFecha(e.fechaEstimada) }}</td>
+                        <tr v-for="(g, gi) in entregadosPaginados" :key="g.key" class="fila-entregada">
+                            <td>
+                                <div class="grupo-orden-label">Pedido #{{ gi + 1 }}</div>
+                                <div v-for="e in g.items" :key="e.id" class="grupo-prod-row">
+                                    <span class="badge-qty">x{{ getPedido(e.pedidoId)?.cantidad || 1 }}</span>
+                                    <span class="texto-prod">{{ getPedido(e.pedidoId)?.nombreProducto || "Producto #" +
+                                        e.pedidoId
+                                        }}</span>
+                                </div>
+                            </td>
+                            <td>{{ g.direccion }}</td>
+                            <td>{{ g.transportista || '-' }}</td>
+                            <td>{{ formatFecha(g.fechaEstimada) }}</td>
                             <td><span class="badge badge-success">✓ ENTREGADO</span></td>
                         </tr>
                     </tbody>
@@ -132,21 +144,23 @@
 
                 <div class="form-group">
                     <label>Pedido (EN_PREPARACION)</label>
-                    <select v-model="nuevoEnvio.pedidoId" class="form-control" @change="onPedidoSeleccionado">
-                        <option value="" disabled>Selecciona un pedido</option>
-                        <option v-for="p in pedidosEnPreparacion" :key="p.id" :value="p.id">
-                            #{{ p.id }} — {{ p.cliente }} ({{ p.nombreProducto }})
+                    <select v-model="grupoSeleccionado" class="form-control" @change="onGrupoSeleccionado">
+                        <option :value="null" disabled>Selecciona una compra</option>
+                        <option v-for="g in pedidosAgrupados" :key="g.key" :value="g">
+                            {{ g.cliente }} — {{ g.label }}
                         </option>
                     </select>
-                    <p v-if="pedidosEnPreparacion.length === 0" class="text-muted hint">
+                    <p v-if="pedidosAgrupados.length === 0" class="text-muted hint">
                         No hay pedidos en EN_PREPARACION
                     </p>
                 </div>
 
                 <div class="form-group">
                     <label>Dirección de entrega</label>
-                    <input v-model="nuevoEnvio.direccion" class="form-control"
-                        placeholder="Ej: Av. Principal 123, Santiago" />
+                    <div class="dir-readonly">
+                        <span class="dir-icon-sm">📍</span>
+                        <span>{{ nuevoEnvio.direccion || 'Sin dirección registrada' }}</span>
+                    </div>
                 </div>
 
                 <!-- SELECTOR TRANSPORTISTA -->
@@ -200,9 +214,12 @@ export default {
             loading: true,
             mostrarModal: false,
             pedidosEnPreparacion: [],
+            pedidosAgrupados: [],
+            grupoSeleccionado: null,
             usuarios: [],
             creando: false,
             errorCarga: "",
+            todosPedidos: [],
             paginaActivos: 1,
             paginaEntregados: 1,
             porPagina: 6,
@@ -217,25 +234,23 @@ export default {
         };
     },
     computed: {
-        enviosActivos() {
-            return this.envios.filter(e => e.estado !== "ENTREGADO");
-        },
-        enviosEntregados() {
-            return this.envios.filter(e => e.estado === "ENTREGADO");
-        },
+        enviosActivos() { return this.envios.filter(e => e.estado !== "ENTREGADO"); },
+        enviosEntregados() { return this.envios.filter(e => e.estado === "ENTREGADO"); },
+        activosAgrupados() { return this.agruparEnvios(this.enviosActivos); },
+        entregadosAgrupados() { return this.agruparEnvios(this.enviosEntregados); },
         activosPaginados() {
             const i = (this.paginaActivos - 1) * this.porPagina;
-            return this.enviosActivos.slice(i, i + this.porPagina);
+            return this.activosAgrupados.slice(i, i + this.porPagina);
         },
         totalPaginasActivos() {
-            return Math.ceil(this.enviosActivos.length / this.porPagina);
+            return Math.ceil(this.activosAgrupados.length / this.porPagina);
         },
         entregadosPaginados() {
             const i = (this.paginaEntregados - 1) * this.porPagina;
-            return this.enviosEntregados.slice(i, i + this.porPagina);
+            return this.entregadosAgrupados.slice(i, i + this.porPagina);
         },
         totalPaginasEntregados() {
-            return Math.ceil(this.enviosEntregados.length / this.porPagina);
+            return Math.ceil(this.entregadosAgrupados.length / this.porPagina);
         }
     },
     async mounted() {
@@ -246,10 +261,32 @@ export default {
         async abrirModal() {
             this.errorModal = "";
             this.transportistaSeleccionado = "";
+            this.grupoSeleccionado = null;
             this.nuevoEnvio = { pedidoId: "", direccion: "", transportista: "", fechaEstimada: "" };
             try {
                 const [todos, usuarios] = await Promise.all([getPedidos(), getUsuarios()]);
-                this.pedidosEnPreparacion = todos.filter(p => p.estado === "EN_PREPARACION");
+                // Filtrar pedidos EN_PREPARACION que NO tienen envío ya creado
+                const idsConEnvio = new Set(this.envios.map(e => e.pedidoId));
+                const enPrep = todos.filter(p =>
+                    p.estado === "EN_PREPARACION" && !idsConEnvio.has(p.id)
+                );
+                this.pedidosEnPreparacion = enPrep;
+                // Agrupar por grupoId (cada compra es un grupo independiente)
+                const grupos = {};
+                enPrep.forEach(p => {
+                    const key = p.grupoId || ("solo_" + p.id);
+                    if (!grupos[key]) grupos[key] = [];
+                    grupos[key].push(p);
+                });
+                this.pedidosAgrupados = Object.entries(grupos).map(([key, items]) => ({
+                    key,
+                    items,
+                    cliente: items[0].cliente,
+                    direccion: items[0].direccion || "",
+                    label: items.length === 1
+                        ? items[0].nombreProducto
+                        : items.length + " productos (" + items.map(p => p.nombreProducto).join(", ") + ")"
+                }));
                 this.usuarios = usuarios;
             } catch {
                 this.pedidosEnPreparacion = [];
@@ -261,9 +298,15 @@ export default {
             this.mostrarModal = false;
             this.errorModal = "";
         },
-        onPedidoSeleccionado() {
-            const pedido = this.pedidosEnPreparacion.find(p => p.id == this.nuevoEnvio.pedidoId);
-            if (!pedido) return;
+        onGrupoSeleccionado() {
+            if (!this.grupoSeleccionado) return;
+            // Usar dirección guardada en el pedido (la que ingresó el cliente)
+            if (this.grupoSeleccionado.direccion) {
+                this.nuevoEnvio.direccion = this.grupoSeleccionado.direccion;
+                return;
+            }
+            // Si no tiene, buscar en MS Usuarios
+            const pedido = this.grupoSeleccionado.items[0];
             const usuario = this.usuarios.find(u =>
                 u.correo === pedido.cliente || u.nombre === pedido.cliente
             );
@@ -279,19 +322,48 @@ export default {
             }
         },
         async crearEnvio() {
-            if (!this.nuevoEnvio.pedidoId) { this.errorModal = "Debes seleccionar un pedido"; return; }
+            if (!this.grupoSeleccionado) { this.errorModal = "Debes seleccionar una compra"; return; }
             if (!this.nuevoEnvio.direccion.trim()) { this.errorModal = "La dirección es obligatoria"; return; }
             if (!this.nuevoEnvio.transportista.trim()) { this.errorModal = "El transportista es obligatorio"; return; }
             this.creando = true;
             this.errorModal = "";
             try {
-                const envioCreado = await crearEnvio(this.nuevoEnvio);
-                this.envios.unshift(envioCreado);
+                for (const pedido of this.grupoSeleccionado.items) {
+                    const envioCreado = await crearEnvio({
+                        pedidoId: pedido.id,
+                        direccion: this.nuevoEnvio.direccion,
+                        transportista: this.nuevoEnvio.transportista,
+                        fechaEstimada: this.nuevoEnvio.fechaEstimada,
+                        grupoId: this.grupoSeleccionado.key
+                    });
+                    this.envios.unshift(envioCreado);
+                }
                 this.cerrarModal();
+                window.$toast.mostrar("Envío creado para " + this.grupoSeleccionado.items.length + " pedido(s)", "success");
             } catch {
                 this.errorModal = "Error al crear el envío. Intenta de nuevo.";
             }
             this.creando = false;
+        },
+        getPedido(pedidoId) {
+            return this.todosPedidos.find(p => p.id === pedidoId) || null;
+        },
+        agruparEnvios(lista) {
+            if (!Array.isArray(lista)) return [];
+            const grupos = {};
+            lista.forEach(e => {
+                const key = e.grupoId || ("envio_" + e.id);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(e);
+            });
+            return Object.entries(grupos).map(([key, items]) => ({
+                key,
+                items,
+                direccion: items[0].direccion,
+                transportista: items[0].transportista,
+                fechaEstimada: items[0].fechaEstimada,
+                estado: items[0].estado
+            }));
         },
         async cambiarEstado(id, estado) {
             try {
@@ -299,6 +371,17 @@ export default {
                 const e = this.envios.find(e => e.id === id);
                 if (e) e.estado = estado;
             } catch { window.$toast.mostrar("Error al cambiar estado del envío", "error"); }
+        },
+        async cambiarEstadoGrupo(grupo, estado) {
+            try {
+                for (const e of grupo.items) {
+                    await cambiarEstadoEnvio(e.id, estado);
+                    const original = this.envios.find(x => x.id === e.id);
+                    if (original) original.estado = estado;
+                }
+                grupo.estado = estado;
+                window.$toast.mostrar("Estado actualizado para " + grupo.items.length + " envío(s)", "success");
+            } catch { window.$toast.mostrar("Error al cambiar estado", "error"); }
         },
         badgeEnvio(e) {
             const m = {

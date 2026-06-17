@@ -4,7 +4,9 @@
 
         <div class="container page" v-if="producto">
 
-            <button class="btn-back" @click="$router.back()">← Volver</button>
+            <button class="btn-back" @click="$router.back()" style="display:flex;align-items:center;gap:4px">
+                <Icons name="arrow-left" :size="16" color="currentColor" /> Volver
+            </button>
 
             <div class="producto-detalle">
 
@@ -63,12 +65,13 @@
 </template>
 
 <script>
+import Icons from "../../components/Icons.vue";
 import NavbarCliente from "../../components/NavbarCliente.vue";
 import { getProductos, crearPedido } from "../../services/api";
 import "@/assets/styles/productoview.css";
 
 export default {
-    components: { NavbarCliente },
+    components: { NavbarCliente, Icons },
     data() {
         return {
             producto: null,

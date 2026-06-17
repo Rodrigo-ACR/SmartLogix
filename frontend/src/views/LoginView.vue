@@ -144,9 +144,18 @@ export default {
                     localStorage.setItem("rol", data.rol);
                     localStorage.setItem("nombre", data.nombre);
                     localStorage.setItem("correo", this.correo);
+                    localStorage.setItem("telefono", data.telefono || "");
                     localStorage.setItem("id", data.id);
                     if (data.direccion) {
-                        localStorage.setItem("direcciones", JSON.stringify([data.direccion]));
+                        // La dirección puede ser JSON array o string simple
+                        let dirsBackend = [];
+                        try {
+                            const parsed = JSON.parse(data.direccion);
+                            dirsBackend = Array.isArray(parsed) ? parsed : [data.direccion];
+                        } catch {
+                            dirsBackend = [data.direccion];
+                        }
+                        localStorage.setItem("direcciones", JSON.stringify(dirsBackend));
                     }
                     this.$router.push(data.rol === "ADMIN" ? "/admin" : "/inicio");
                 } else {

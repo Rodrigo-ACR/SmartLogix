@@ -27,7 +27,8 @@ public class BffController {
         // resuelve los nombres de servicio contra Eureka
         private final RestTemplate rest;
 
-        public BffController(@org.springframework.beans.factory.annotation.Qualifier("plainRestTemplate") RestTemplate rest) {
+        public BffController(
+                        @org.springframework.beans.factory.annotation.Qualifier("plainRestTemplate") RestTemplate rest) {
                 this.rest = rest;
         }
 
@@ -134,7 +135,7 @@ public class BffController {
         @PostMapping("/pedidos")
         @CircuitBreaker(name = "pedidos", fallbackMethod = "fallbackCrearPedido")
         public ResponseEntity<Object> crearPedido(
-                        @RequestBody Object pedido) {
+                        @RequestBody java.util.Map<String, Object> pedido) {
 
                 logger.info("POST /api/productos/pedidos");
 
@@ -142,6 +143,22 @@ public class BffController {
                                 URL_PEDIDOS,
                                 pedido,
                                 Object.class);
+
+                // Descontar stock del producto en Inventario
+                try {
+                        Object productoId = pedido.get("productoId");
+                        Object cantidad = pedido.get("cantidad");
+                        if (productoId != null && cantidad != null) {
+                                String urlDescontar = URL_INVENTARIO + "/" + productoId + "/descontar?cantidad="
+                                                + cantidad;
+                                org.springframework.http.HttpEntity<Void> req = new org.springframework.http.HttpEntity<>(
+                                                null);
+                                rest.put(urlDescontar, req);
+                                logger.info("Stock descontado: producto={} cantidad={}", productoId, cantidad);
+                        }
+                } catch (Exception e) {
+                        logger.warn("No se pudo descontar stock: {}", e.getMessage());
+                }
 
                 return ResponseEntity.status(201)
                                 .body(respuesta);
@@ -289,7 +306,7 @@ public class BffController {
 
                 rest.put(URL_USUARIOS + "/" + id, request);
 
-                return ResponseEntity.ok("Usuario actualizado");
+                return ResponseEntity.ok("{\"mensaje\": \"Usuario actualizado\"}");
         }
 
         // =================================================

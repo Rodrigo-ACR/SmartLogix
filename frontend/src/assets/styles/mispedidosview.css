@@ -490,3 +490,39 @@
     background: rgba(239, 68, 68, 0.15);
     border-color: rgba(239, 68, 68, 0.5);
 }
+
+/* Grupo de productos en una compra */
+.grupo-productos {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.grupo-producto-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+}
+
+.grupo-prod-nombre {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.grupo-prod-qty {
+    background: var(--accent-glow);
+    color: var(--accent);
+    padding: 1px 8px;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.grupo-prod-id {
+    font-size: 0.75rem;
+}

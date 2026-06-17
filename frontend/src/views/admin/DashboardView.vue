@@ -152,14 +152,26 @@ export default {
         } else { this.errores.productos = true; }
 
         if (pedidos.status === "fulfilled") {
-            this.stats.pedidos = pedidos.value.length;
+            const todosEnvios = envios.status === "fulfilled" ? envios.value : [];
+            const pedidosConEnvio = new Set(todosEnvios.map(e => e.pedidoId));
+
+            // Contar compras agrupadas SIN envío asignado
+            const grupos = {};
+            pedidos.value.forEach(p => {
+                const key = p.grupoId || ("solo_" + p.id);
+                if (!grupos[key]) grupos[key] = { tieneEnvio: false };
+                if (pedidosConEnvio.has(p.id)) grupos[key].tieneEnvio = true;
+            });
+            this.stats.pedidos = Object.values(grupos).filter(g => !g.tieneEnvio).length;
             this.pedidos = [...pedidos.value].reverse();
-            this.calcularEstadosPedidos(pedidos.value);
+            this.calcularEstadosPedidos(pedidos.value, todosEnvios);
         } else { this.errores.pedidos = true; }
 
         if (envios.status === "fulfilled") {
-            this.stats.envios = envios.value.length;
             this.envios = [...envios.value].reverse();
+            // Contar grupos únicos de envíos
+            const gruposEnvio = new Set(envios.value.map(e => e.grupoId || ("envio_" + e.id)));
+            this.stats.envios = gruposEnvio.size;
             this.calcularEstadosEnvios(envios.value);
         } else { this.errores.envios = true; }
 
@@ -174,13 +186,30 @@ export default {
         if (this.enviosStats.length) this.renderChartEnvios();
     },
     methods: {
-        calcularEstadosPedidos(data) {
+        calcularEstadosPedidos(data, todosEnvios = []) {
             const colores = {
                 CREADO: "#7c5cfc", VALIDADO: "#f59e0b", APROBADO: "#22c55e",
                 EN_PREPARACION: "#0d9488", RECHAZADO: "#ef4444"
             };
+            // IDs de pedidos que ya tienen envío asignado
+            const pedidosConEnvio = new Set(todosEnvios.map(e => e.pedidoId));
+
+            // Agrupar por grupoId, excluir grupos que YA tienen envío
+            const grupos = {};
+            data.forEach(p => {
+                const key = p.grupoId || ("solo_" + p.id);
+                if (!grupos[key]) grupos[key] = { estado: p.estado, tieneEnvio: false };
+                if (pedidosConEnvio.has(p.id)) grupos[key].tieneEnvio = true;
+            });
+
+            // Solo contar grupos SIN envío
             const conteo = {};
-            data.forEach(p => { conteo[p.estado] = (conteo[p.estado] || 0) + 1; });
+            Object.values(grupos).forEach(g => {
+                if (!g.tieneEnvio) {
+                    conteo[g.estado] = (conteo[g.estado] || 0) + 1;
+                }
+            });
+
             this.pedidosStats = Object.entries(conteo).map(([label, value]) => ({
                 label, value, color: colores[label] || "#64748b"
             }));
@@ -190,8 +219,16 @@ export default {
                 PENDIENTE: "#f59e0b", ASIGNADO: "#7c5cfc",
                 EN_TRANSITO: "#0d9488", ENTREGADO: "#22c55e", INCIDENCIA: "#ef4444"
             };
+            // Agrupar por grupoId, usar estado del primer envío del grupo
+            const grupos = {};
+            data.forEach(e => {
+                const key = e.grupoId || ("envio_" + e.id);
+                if (!grupos[key]) grupos[key] = e.estado;
+            });
             const conteo = {};
-            data.forEach(e => { conteo[e.estado] = (conteo[e.estado] || 0) + 1; });
+            Object.values(grupos).forEach(estado => {
+                conteo[estado] = (conteo[estado] || 0) + 1;
+            });
             this.enviosStats = Object.entries(conteo).map(([label, value]) => ({
                 label, value, color: colores[label] || "#64748b"
             }));

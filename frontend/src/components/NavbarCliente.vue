@@ -56,7 +56,7 @@
 
 <script>
 import ThemeToggle from "./ThemeToggle.vue";
-import { getPedidos } from "../services/api";
+import { getPedidos, getEnvios } from "../services/api";
 import Icons from "./Icons.vue";
 import "@/assets/styles/navbarcliente.css";
 export default {
@@ -71,13 +71,31 @@ export default {
     },
     async mounted() {
         try {
-            const todos = await getPedidos();
             const nombre = localStorage.getItem("nombre") || "";
             const correo = localStorage.getItem("correo") || "";
-            this.pedidosActivos = todos.filter(p =>
-                (p.cliente === nombre || p.cliente === correo) &&
-                !["RECHAZADO", "ENTREGADO"].includes(p.estado)
-            ).length;
+            const [pedidosRes, enviosRes] = await Promise.allSettled([getPedidos(), getEnvios()]);
+
+            const misPedidos = pedidosRes.status === "fulfilled"
+                ? pedidosRes.value.filter(p => p.cliente === nombre || p.cliente === correo)
+                : [];
+            const misEnvios = enviosRes.status === "fulfilled" ? enviosRes.value : [];
+
+            // Agrupar por grupoId (o id individual si no tiene grupo)
+            const grupos = {};
+            misPedidos.forEach(p => {
+                const key = p.grupoId || ("solo_" + p.id);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(p);
+            });
+
+            // Contar grupos cuyo estado final no sea ENTREGADO ni RECHAZADO
+            let activos = 0;
+            Object.values(grupos).forEach(items => {
+                const envio = misEnvios.find(e => e.pedidoId === items[0].id);
+                const estadoFinal = envio ? envio.estado : items[0].estado;
+                if (!["RECHAZADO", "ENTREGADO"].includes(estadoFinal)) activos++;
+            });
+            this.pedidosActivos = activos;
         } catch { this.pedidosActivos = 0; }
     },
     methods: {

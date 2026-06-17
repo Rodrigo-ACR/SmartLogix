@@ -40,6 +40,7 @@ public class AuthController {
                 "rol", user.getRol(),
                 "nombre", user.getNombre(),
                 "id", user.getId(),
+                "telefono", user.getTelefono() != null ? user.getTelefono() : "",
                 "direccion", user.getDireccion() != null ? user.getDireccion() : ""));
     }
 }

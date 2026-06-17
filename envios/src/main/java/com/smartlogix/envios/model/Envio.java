@@ -13,6 +13,8 @@ public class Envio {
 
     private Long pedidoId;
 
+    private String grupoId;
+
     private String direccion;
 
     private String transportista;
@@ -22,22 +24,58 @@ public class Envio {
     @Enumerated(EnumType.STRING)
     private EstadoEnvio estado;
 
-    public Envio() {}
+    public Envio() {
+    }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getPedidoId() { return pedidoId; }
-    public void setPedidoId(Long pedidoId) { this.pedidoId = pedidoId; }
+    public Long getPedidoId() {
+        return pedidoId;
+    }
 
-    public String getDireccion() { return direccion; }
-    public void setDireccion(String direccion) { this.direccion = direccion; }
+    public void setPedidoId(Long pedidoId) {
+        this.pedidoId = pedidoId;
+    }
 
-    public String getTransportista() { return transportista; }
-    public void setTransportista(String transportista) { this.transportista = transportista; }
+    public String getGrupoId() {
+        return grupoId;
+    }
 
-    public LocalDate getFechaEstimada() { return fechaEstimada; }
-    public void setFechaEstimada(LocalDate fechaEstimada) { this.fechaEstimada = fechaEstimada; }
+    public void setGrupoId(String grupoId) {
+        this.grupoId = grupoId;
+    }
 
-    public EstadoEnvio getEstado() { return estado; }
-    public void setEstado(EstadoEnvio estado) { this.estado = estado; }
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
+    public String getTransportista() {
+        return transportista;
+    }
+
+    public void setTransportista(String transportista) {
+        this.transportista = transportista;
+    }
+
+    public LocalDate getFechaEstimada() {
+        return fechaEstimada;
+    }
+
+    public void setFechaEstimada(LocalDate fechaEstimada) {
+        this.fechaEstimada = fechaEstimada;
+    }
+
+    public EstadoEnvio getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoEnvio estado) {
+        this.estado = estado;
+    }
 }
