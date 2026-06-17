@@ -37,7 +37,7 @@ export default {
             return new Promise(res => { this.resolve = res; });
         },
         confirmar() { this.visible = false; this.resolve(true); },
-        cancelar()  { this.visible = false; this.resolve(false); }
+        cancelar() { this.visible = false; this.resolve(false); }
     }
 }
 </script>
@@ -46,16 +46,17 @@ export default {
 .confirm-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9998;
     backdrop-filter: blur(4px);
 }
+
 .confirm-box {
-    background: #1e1e2a;
-    border: 1px solid #2a2a3a;
+    background: var(--bg-card, #1e1e2a);
+    border: 1px solid var(--border);
     border-radius: 20px;
     padding: 2rem;
     width: 100%;
@@ -63,15 +64,55 @@ export default {
     text-align: center;
     animation: popIn 0.25s ease;
 }
-.confirm-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-.confirm-box h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-primary); }
-.confirm-box p  { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.confirm-actions { display: flex; gap: 10px; justify-content: center; }
-.btn-danger  { background: var(--danger);  color: white; }
-.btn-warning { background: var(--warning); color: white; }
-.btn-accent  { background: var(--accent);  color: white; }
+
+.confirm-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.confirm-box h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.confirm-box p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-accent {
+    background: var(--accent);
+    color: white;
+}
+
 @keyframes popIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to   { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 </style>

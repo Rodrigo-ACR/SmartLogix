@@ -260,6 +260,11 @@ export default {
                 }
             } catch { this.direcciones = []; }
         }
+        // Restaurar carrito guardado
+        const carritoGuardado = localStorage.getItem("carrito");
+        if (carritoGuardado) {
+            try { this.carrito = JSON.parse(carritoGuardado); } catch { this.carrito = []; }
+        }
     },
 
     methods: {
@@ -278,6 +283,9 @@ export default {
         enCarrito(p) {
             return this.carrito.find(i => i.id === p.id) || null;
         },
+        guardarCarrito() {
+            localStorage.setItem("carrito", JSON.stringify(this.carrito));
+        },
         agregarCarrito(p) {
             const existe = this.carrito.find(i => i.id === p.id);
             if (existe) {
@@ -285,20 +293,24 @@ export default {
             } else {
                 this.carrito.push({ ...p, qty: 1 });
             }
+            this.guardarCarrito();
         },
 
         decrementar(item) {
             if (item.qty > 1) item.qty--;
-            else this.quitarCarrito(item);
+            else { this.quitarCarrito(item); return; }
+            this.guardarCarrito();
         },
 
         incrementar(item) {
             const original = this.productos.find(p => p.id === item.id);
             if (original && item.qty < original.stock) item.qty++;
+            this.guardarCarrito();
         },
 
         quitarCarrito(item) {
             this.carrito = this.carrito.filter(i => i.id !== item.id);
+            this.guardarCarrito();
         },
 
         async confirmarPedido() {
@@ -331,6 +343,7 @@ export default {
                     });
                 }
                 this.carrito = [];
+                localStorage.removeItem("carrito");
                 this.mostrarCarrito = false;
                 this.pasoCheckout = 1;
                 this.nuevaDirCheckout = "";

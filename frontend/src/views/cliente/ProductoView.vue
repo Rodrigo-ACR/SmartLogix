@@ -45,9 +45,8 @@
                     </div>
 
                     <div class="acciones">
-                        <button class="btn btn-primary" :disabled="producto.stock === 0 || comprando"
-                            @click="comprarAhora">
-                            {{ comprando ? 'Procesando...' : '⚡ Comprar ahora' }}
+                        <button class="btn btn-primary" :disabled="producto.stock === 0" @click="abrirConfirmacion">
+                            ⚡ Comprar ahora
                         </button>
                     </div>
 
@@ -61,6 +60,53 @@
         <div v-else-if="loading" class="container page">
             <div class="skeleton-detalle"></div>
         </div>
+
+        <!-- MODAL CONFIRMACIÓN DE COMPRA -->
+        <div v-if="mostrarConfirmacion" class="modal-overlay" @click.self="mostrarConfirmacion = false">
+            <div class="modal checkout-modal">
+                <div class="modal-header">
+                    <h3>📋 Confirmar pedido</h3>
+                    <button @click="mostrarConfirmacion = false" class="btn-close">✕</button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="checkout-seccion">
+                        <h4 class="checkout-label">Producto</h4>
+                        <div class="checkout-item">
+                            <span class="checkout-item-nombre">{{ producto.nombre }}</span>
+                            <span class="checkout-item-det">x{{ cantidad }}</span>
+                            <span class="checkout-item-precio">${{ formatPrecio(producto.precio * cantidad) }}</span>
+                        </div>
+                        <div class="checkout-total">
+                            <span>Total</span>
+                            <span>${{ formatPrecio(producto.precio * cantidad) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="checkout-seccion">
+                        <h4 class="checkout-label">Dirección de entrega</h4>
+                        <div v-if="direcciones.length > 0" class="dir-opciones">
+                            <label v-for="(d, i) in direcciones" :key="i" class="dir-opcion"
+                                :class="{ selected: direccionSeleccionada === d }">
+                                <input type="radio" v-model="direccionSeleccionada" :value="d" />
+                                <span>📍 {{ d }}</span>
+                            </label>
+                        </div>
+                        <div class="nueva-dir-checkout">
+                            <input v-model="nuevaDirCheckout" type="text" class="checkout-input"
+                                :placeholder="direcciones.length > 0 ? 'O ingresa una nueva dirección' : 'Ej: Av. Principal 123, Santiago'" />
+                        </div>
+                        <p v-if="errorDir" class="checkout-error">{{ errorDir }}</p>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary w-full" @click="comprarAhora" :disabled="comprando">
+                        {{ comprando ? 'Procesando...' : '✅ Confirmar compra' }}
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -69,6 +115,7 @@ import Icons from "../../components/Icons.vue";
 import NavbarCliente from "../../components/NavbarCliente.vue";
 import { getProductos, crearPedido } from "../../services/api";
 import "@/assets/styles/productoview.css";
+import "@/assets/styles/inicioview.css";
 
 export default {
     components: { NavbarCliente, Icons },
@@ -79,7 +126,12 @@ export default {
             cantidad: 1,
             loading: true,
             comprando: false,
-            mensaje: ""
+            mensaje: "",
+            mostrarConfirmacion: false,
+            direcciones: [],
+            direccionSeleccionada: "",
+            nuevaDirCheckout: "",
+            errorDir: ""
         };
     },
     computed: {
@@ -98,22 +150,49 @@ export default {
         } catch {
             this.producto = null;
         }
+        // Cargar direcciones guardadas
+        const dirs = localStorage.getItem("direcciones");
+        if (dirs) {
+            try {
+                this.direcciones = JSON.parse(dirs);
+                if (this.direcciones.length > 0) this.direccionSeleccionada = this.direcciones[0];
+            } catch { this.direcciones = []; }
+        }
         this.loading = false;
     },
     methods: {
+        abrirConfirmacion() {
+            this.errorDir = "";
+            this.mostrarConfirmacion = true;
+        },
         async comprarAhora() {
+            const dir = this.nuevaDirCheckout.trim() || this.direccionSeleccionada;
+            if (!dir) {
+                this.errorDir = "Debes ingresar o seleccionar una dirección de entrega";
+                return;
+            }
+            this.errorDir = "";
             this.comprando = true;
+
+            if (this.nuevaDirCheckout.trim() && !this.direcciones.includes(this.nuevaDirCheckout.trim())) {
+                this.direcciones.push(this.nuevaDirCheckout.trim());
+                localStorage.setItem("direcciones", JSON.stringify(this.direcciones));
+            }
+
             try {
                 await crearPedido({
-                    cliente: localStorage.getItem("nombre") || "Cliente",
+                    cliente: localStorage.getItem("correo") || localStorage.getItem("nombre") || "Cliente",
                     productoId: this.producto.id,
                     nombreProducto: this.producto.nombre,
-                    cantidad: this.cantidad
+                    cantidad: this.cantidad,
+                    direccion: dir,
+                    grupoId: Date.now().toString()
                 });
-                this.mensaje = "Pedido creado exitosamente";
-                setTimeout(() => this.$router.push("/mis-pedidos"), 1500);
+                this.mostrarConfirmacion = false;
+                window.$toast.mostrar("¡Pedido realizado con éxito! 🎉", "success", 4000);
+                setTimeout(() => this.$router.push("/mis-pedidos"), 1000);
             } catch {
-                this.mensaje = "Error al crear el pedido";
+                window.$toast.mostrar("Error al crear el pedido. Intenta de nuevo.", "error");
             }
             this.comprando = false;
         },
